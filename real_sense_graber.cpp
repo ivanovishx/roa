@@ -1,3 +1,18 @@
+/*void cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud)
+  {
+
+    uint32_t color=*(reinterpret_cast<const int *>(&(cloud->points [(cloud->width >> 1) * (cloud->height + 1)].rgb)));
+
+    std::cout<<"distance of center pixel : "<<cloud->points [(cloud->width >> 1) * (cloud->height + 1)].z<<" m."<<std::endl;
+    std::cout<<"the RGB values : "<<((color>>16)&0x0000FF)<<" "<<((color>>8)&0x0000FF)<<" "<<((color)&0x0000FF)<<std::endl;
+      count = 0;
+
+  if (!viewer.wasStopped())
+         viewer.showCloud (cloud);
+  }
+*/
+
+
 #include <iostream>
 
 using namespace std;
@@ -12,7 +27,10 @@ using namespace std;
 
 #include <pcl/common/io.h>
 #include <pcl/common/time.h>
-
+//////////
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+//////////
 #include "real_sense_grabber.h"
 #include "real_sense/real_sense_device_manager.h"
 #include "buffers.h"
@@ -262,6 +280,33 @@ pcl::RealSenseGrabber::setMode (const Mode& mode, bool strict)
 // void
 // pcl::RealSenseGrabber::splitColorsRGBA(int RGBASource)
 
+void //ssssssss
+pcl::RealSenseGrabber::sendPCD ()
+{
+   pcl::PointCloud<pcl::PointXYZ> cloud;
+
+  // Fill in the cloud data
+  cloud.width    = 5;
+  cloud.height   = 1;
+  cloud.is_dense = false;
+  cloud.points.resize (cloud.width * cloud.height);
+
+  for (size_t i = 0; i < cloud.points.size (); ++i)
+  {
+    cloud.points[i].x = 1024 * rand () / (RAND_MAX + 1.0f);
+    cloud.points[i].y = 1024 * rand () / (RAND_MAX + 1.0f);
+    cloud.points[i].z = 1024 * rand () / (RAND_MAX + 1.0f);
+  }
+
+  pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
+  std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
+
+  for (size_t i = 0; i < cloud.points.size (); ++i)
+    std::cerr << "    " << cloud.points[i].x << " " << cloud.points[i].y << " " << cloud.points[i].z << std::endl;
+
+}
+
+
 void
 pcl::RealSenseGrabber::run ()
 {
@@ -275,9 +320,14 @@ pcl::RealSenseGrabber::run ()
   createDepthBuffer ();
 
   while (is_running_)
-  {
+  { //ddddddddddd
     pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud;
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr xyzrgba_cloud;
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ROA_Matrix; //Robotic Arm Object
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* temp_Matrix; //Body pacient Object
+    bool ROA_selected_px = false;
+    pcl::PointCloud<pcl::PointXYZ> cloudSave;
 
     pxcStatus status;
     if (need_xyzrgba_) {
@@ -377,67 +427,76 @@ pcl::RealSenseGrabber::run ()
             PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
             pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
 
+
             uint32_t ja = 120;
             // uint32_t* color_row = &ja;
             // uint32_t* color_row = &d[i * (data.pitches[0]/2) / sizeof (uint32_t)];
             uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)]; // <---------- position of color map and XYZ position
-            for (int j = 0; j < WIDTH; j++)
-            {
-
-              // cloud_row[j].r= 0;
-              // cloud_row[j].g= 0;
-              // cloud_row[j].b= 0;
+            for (int j = 0; j < WIDTH; j++) {
               convertPoint (vertices_row[j], cloud_row[j]);
-              // color_row[j].r= 0;
-              // color_row[j].g= 0;
-//xxxxxx
               memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
-              // cloud_row[j].rgba = ja; //
-              // cloud_row[j].rgba = (uint32_t)4294902015;//fushia
-
               uint32_t color = cloud_row[j].rgba;
+              uint32_t OriginalColor = color;
               cloud_row[j].rgba = (uint32_t)2701131775;
+
               if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
                 cloud_row[j].rgba = (uint32_t)4294902015;//fushia
 
                 int ColorMaxFilter = 120;//130
                 int ColorMinFilter = 90;//80
-
-                /*RED*/if (((color >> 16) & 0x0000FF) >= ColorMaxFilter && ((color >> 8) & 0x0000FF) <  40 && ((color) & 0x0000FF) < 40)
+                /*BLUE*/
+                if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter)
                 {
-                  // std::cout << "Red:" << ((color >> 16) & 0x0000FF);
-                  // std::cout << " =:" << ((color >> 16) & 0x0000FF) << " " << ((color >> 8) & 0x0000FF) << " " << ((color) & 0x0000FF) << std::endl;
-                  // std::cout <<std::endl;
-                  cloud_row[j].rgba = (uint32_t)4294909984;//RED ?
-                }
 
-                /*GREEN*/if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) >= ColorMaxFilter && ((color) & 0x0000FF) < ColorMinFilter)
-                {
-                  // std::cout << "Green:" << ((color >> 8) & 0x0000FF) ;
-                  // std::cout << " =:" << ((color >> 16) & 0x0000FF) << " " << ((color >> 8) & 0x0000FF) << " " << ((color) & 0x0000FF) << std::endl;
-                  // std::cout <<std::endl;
-                  cloud_row[j].rgba = (uint32_t)4278255360;// FF00FF00 // green full
-                }
-
-                // if ((color & 0x00FF0000) < ColorMinFilter && (color & 0x0000FF00) <  ColorMinFilter && (color & 0x000000FF) >= ColorMaxFilter)
-                /*BLUE*/if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter)
-                {
-                  // std::cout << "Blue:" << ((color) & 0x0000FF) ;
-                  // std::cout << " =:" << ((color >> 16) & 0x0000FF) << " " << ((color >> 8) & 0x0000FF) << " " << ((color) & 0x0000FF) << std::endl;
-                  // std::cout <<std::endl;
                   cloud_row[j].rgba = (uint32_t)4278190335; // FF0000FF //aarrggbb //blue FULL
+                  cloud_row[j].rgba = OriginalColor;
+                  // ROA_Matrix[j] = cloud_row[j];
+                  ROA_selected_px = true;
                 }
+                else {
+                  ROA_selected_px = false;
+                }
+//xxxxxx
+                if (ROA_selected_px) {
 
 
+                  sendPCD();
+                  // ROA_Matrix[j] = &cloud_row[j];
+                  // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
 
-                // std::cout << "the RGB values : " << ((color >> 16) & 0x0000FF) << " " << ((color >> 8) & 0x0000FF) << " " << ((color) & 0x0000FF) << std::endl;
+                  // &ROA_Matrix->points[i * WIDTH] =  &xyzrgba_cloud->points[i * WIDTH];
+                  // temp_Matrix.points = *temp_row_Matrix;
+                  //OK pcl::PointXYZRGBA* temp_row_Matrix = &xyzrgba_cloud->points[i * WIDTH];
+                  /*samples*/
+                  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudRead (new pcl::PointCloud<pcl::PointXYZ>);
+                  // printf("width:%d\n", cloudSave.width );
+
+/*ERROR IN MEMORY?                  cloudSave.points[j].x = cloud_row[j].x;
+                  cloudSave.points[j].y = cloud_row[j].y;
+                  cloudSave.points[j].z = cloud_row[j].z;*/
+                  // cloudSave.points[j].rgba = cloud_row[j].rgba;
+
+                  // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
+                }
+                else {
+/*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
+                  cloudSave.points[j].y = 0;
+                  cloudSave.points[j].z = 0;
+                 // cloudSave.points[j].rgba = 4278255360;*/
+                }
               }
-              // cloud_row[j].rgba = (uint32_t)4282809500; //blue soft
-              // cloud_row[j].rgba = (uint32_t)1023; //
-              // std::cout<<":"<<cloud_row[j].z<<":"<<cloud_row[j].rgba<<":"<<std::endl;
-
             }
           }
+
+
+
+          // SAVE START
+          // pcl::io::savePCDFileASCII ("test_pcd.pcd", cloudSave);
+          // std::cerr << "Saved " << cloudSave.points.size () << " data points to test_pcd.pcd." << std::endl;
+          // for (size_t k = 0; k < cloudSave.points.size (); ++k)
+          // { std::cerr << "    " << cloudSave.points[k].x << " " << cloudSave.points[k].y << " " << cloudSave.points[k].z << std::endl;}
+          
+          // SAVE END
         }
         mapped->ReleaseAccess (&data);
         mapped->Release ();
