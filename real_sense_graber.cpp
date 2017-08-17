@@ -43,6 +43,7 @@ using namespace pcl::io::real_sense;
  * Takes care of unit conversion (PXC point coordinates are in millimeters)
  * and invalid points. */
 template <typename T> inline void
+
 convertPoint (const PXCPoint3DF32& src, T& tgt)
 {
   static const float nan = std::numeric_limits<float>::quiet_NaN ();
@@ -57,6 +58,12 @@ convertPoint (const PXCPoint3DF32& src, T& tgt)
     tgt.z = src.z / 1000.0;
     // tgt.z = src.z / 1000.0;
   }
+}
+
+
+inline uint64_t now_ms(){
+  uint64_t timestamp = pcl::getTime () * 1.0e+3;
+  return timestamp;
 }
 
 pcl::RealSenseGrabber::Mode::Mode ()
@@ -313,12 +320,13 @@ pcl::RealSenseGrabber::run ()
   const int WIDTH = mode_selected_.depth_width;
   const int HEIGHT = mode_selected_.depth_height;
   const int SIZE = WIDTH * HEIGHT;
+  static uint64_t timerSendPCD = now_ms();
 
   PXCProjection* projection = device_->getPXCDevice ().CreateProjection ();
   PXCCapture::Sample sample;
   std::vector<PXCPoint3DF32> vertices (SIZE);
   createDepthBuffer ();
-
+std::cout<<"Runing" <<std::endl;
   while (is_running_)
   { //ddddddddddd
     pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud;
@@ -459,8 +467,12 @@ pcl::RealSenseGrabber::run ()
 //xxxxxx
                 if (ROA_selected_px) {
 
+                  if(now_ms()-timerSendPCD> 250){
+                  std::cout<<"::Difference last cicle ms:"<<(now_ms()-timerSendPCD)<<std::endl;
+                  timerSendPCD = now_ms();
+                  // sendPCD();
+                  }
 
-                  sendPCD();
                   // ROA_Matrix[j] = &cloud_row[j];
                   // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
 
