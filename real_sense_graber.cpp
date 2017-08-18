@@ -61,7 +61,7 @@ convertPoint (const PXCPoint3DF32& src, T& tgt)
 }
 
 
-inline uint64_t now_ms(){
+inline uint64_t now_ms() {
   uint64_t timestamp = pcl::getTime () * 1.0e+3;
   return timestamp;
 }
@@ -290,7 +290,7 @@ pcl::RealSenseGrabber::setMode (const Mode& mode, bool strict)
 void //ssssssss
 pcl::RealSenseGrabber::sendPCD ()
 {
-   pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::PointCloud<pcl::PointXYZ> cloud;
 
   // Fill in the cloud data
   cloud.width    = 5;
@@ -326,7 +326,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
   PXCCapture::Sample sample;
   std::vector<PXCPoint3DF32> vertices (SIZE);
   createDepthBuffer ();
-std::cout<<"Runing" <<std::endl;
+  std::cout << "Runing" << std::endl;
   while (is_running_)
   { //ddddddddddd
     pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud;
@@ -337,7 +337,7 @@ std::cout<<"Runing" <<std::endl;
     bool ROA_selected_px = false;
     //
     // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSave (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ> cloudSave ;
+/*send this->*/    pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send this
     pcl::PointCloud<pcl::PointXYZ> cloudSaveB ;
     cloudSave.width = 1024;
     cloudSave.height = 1024;
@@ -434,14 +434,16 @@ std::cout<<"Runing" <<std::endl;
               memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
           }
         }
-        else
+/*this one->*/   else
         {
           xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (WIDTH, HEIGHT));
           xyzrgba_cloud->header.stamp = timestamp;
           xyzrgba_cloud->is_dense = false;
+
           for (int i = 0; i < HEIGHT; i++)
           {
             PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
+            //we are moving the pointer WIDTH points position each loop(i x Points/row)
             pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
 
 
@@ -476,44 +478,50 @@ std::cout<<"Runing" <<std::endl;
 //xxxxxx
                 if (ROA_selected_px) {
 
-                  if(now_ms()-timerSendPCD> 1000){
-                  std::cout<<"::Difference last cicle ms:"<<(now_ms()-timerSendPCD)<<std::endl;
-                  timerSendPCD = now_ms();
-                  // sendPCD();
+                  if (now_ms() - timerSendPCD > 1000) {
+                    std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+                    timerSendPCD = now_ms();
+                    // sendPCD();
 
-                  // std::cout<<" cloud_a.points.size (): "<<  xyz_cloud.points.size () <<std::endl;
-                  // ROA_Matrix[j] = &cloud_row[j];
-                  // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
+                    // std::cout<<" cloud_a.points.size (): "<<  xyz_cloud.points.size () <<std::endl;
+                    // ROA_Matrix[j] = &cloud_row[j];
+                    // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
 
-                  // &ROA_Matrix->points[i * WIDTH] =  &xyzrgba_cloud->points[i * WIDTH];
-                  // temp_Matrix.points = *temp_row_Matrix;
-                  //OK pcl::PointXYZRGBA* temp_row_Matrix = &xyzrgba_cloud->points[i * WIDTH];
-                  /*samples*/
-                  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudRead (new pcl::PointCloud<pcl::PointXYZ>);
-                  // printf("width:%d\n", cloudSave.width );
+                    // &ROA_Matrix->points[i * WIDTH] =  &xyzrgba_cloud->points[i * WIDTH];
+                    // temp_Matrix.points = *temp_row_Matrix;
+                    //OK pcl::PointXYZRGBA* temp_row_Matrix = &xyzrgba_cloud->points[i * WIDTH];
+                    /*samples*/
+                    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudRead (new pcl::PointCloud<pcl::PointXYZ>);
+                    // printf("width:%d\n", cloudSave.width );
 
-/*ERROR IN MEMORY?  */    
-                  // cloudSave[j].points.x=0;// = cloud_row[j].x;
-                  // cloudSave.points[j].x=0;
-                  // cloudSave.points[j].y = cloud_row[j].y;
-                  // cloudSave.points[j].z = cloud_row[j].z;
-                  // cloudSave.points[j].rgba = cloud_row[j].rgba;
+                    /*ERROR IN MEMORY?  */
+                    // cloudSave[j].points.x=0;// = cloud_row[j].x;
+                    // cloudSave.points[j].x=0;
+                    // cloudSave.points[j].y = cloud_row[j].y;
+                    // cloudSave.points[j].z = cloud_row[j].z;
+                    // cloudSave.points[j].rgba = cloud_row[j].rgba;
 
-                  // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
-                  // cloudSave.points[j].y = cloudSaveB.points[j].y;
-                  std::cout<<" J:"<< j <<std::endl;
+                    // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
+                    // cloudSave.points[j].y = cloudSaveB.points[j].y;
+                    std::cout << " J:" << j << std::endl;
+                    std::cout << " x:" <<cloud_row[j].x  <<   std::endl;
+                    std::cout << " y:" <<cloud_row[j].y  <<   std::endl;
+                    std::cout << " z:" <<cloud_row[j].z  <<   std::endl;
+                    std::cout << " rgba:" <<cloud_row[j].rgba <<    std::endl;
 
                   }
                 }
                 else {
-/*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
-                  cloudSave.points[j].y = 0;
-                  cloudSave.points[j].z = 0;
-                 // cloudSave.points[j].rgba = 4278255360;*/
+                  /*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
+                                    cloudSave.points[j].y = 0;
+                                    cloudSave.points[j].z = 0;
+                                   // cloudSave.points[j].rgba = 4278255360;*/
                 }
+                // std::cout << " " << j;
               }
             }
           }
+              // std::cout<<std::endl;
 
 
 
@@ -522,7 +530,7 @@ std::cout<<"Runing" <<std::endl;
           // std::cerr << "Saved " << cloudSave.points.size () << " data points to test_pcd.pcd." << std::endl;
           // for (size_t k = 0; k < cloudSave.points.size (); ++k)
           // { std::cerr << "    " << cloudSave.points[k].x << " " << cloudSave.points[k].y << " " << cloudSave.points[k].z << std::endl;}
-          
+
           // SAVE END
         }
         mapped->ReleaseAccess (&data);
