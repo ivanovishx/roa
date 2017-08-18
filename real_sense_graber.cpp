@@ -315,7 +315,7 @@ pcl::RealSenseGrabber::sendPCD ()
 
 
 void
-pcl::RealSenseGrabber::run ()
+pcl::RealSenseGrabber::run ()//rrrrrrrrr
 {
   const int WIDTH = mode_selected_.depth_width;
   const int HEIGHT = mode_selected_.depth_height;
@@ -335,7 +335,16 @@ std::cout<<"Runing" <<std::endl;
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* temp_Matrix; //Body pacient Object
     bool ROA_selected_px = false;
-    pcl::PointCloud<pcl::PointXYZ> cloudSave;
+    //
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSave (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ> cloudSave ;
+    pcl::PointCloud<pcl::PointXYZ> cloudSaveB ;
+    cloudSave.width = 1024;
+    cloudSave.height = 1024;
+
+    cloudSaveB.width = 1024;
+    cloudSaveB.width = 1024;
+    //
 
     pxcStatus status;
     if (need_xyzrgba_) {
@@ -467,12 +476,12 @@ std::cout<<"Runing" <<std::endl;
 //xxxxxx
                 if (ROA_selected_px) {
 
-                  if(now_ms()-timerSendPCD> 250){
+                  if(now_ms()-timerSendPCD> 1000){
                   std::cout<<"::Difference last cicle ms:"<<(now_ms()-timerSendPCD)<<std::endl;
                   timerSendPCD = now_ms();
                   // sendPCD();
-                  }
 
+                  // std::cout<<" cloud_a.points.size (): "<<  xyz_cloud.points.size () <<std::endl;
                   // ROA_Matrix[j] = &cloud_row[j];
                   // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
 
@@ -483,12 +492,18 @@ std::cout<<"Runing" <<std::endl;
                   // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudRead (new pcl::PointCloud<pcl::PointXYZ>);
                   // printf("width:%d\n", cloudSave.width );
 
-/*ERROR IN MEMORY?                  cloudSave.points[j].x = cloud_row[j].x;
-                  cloudSave.points[j].y = cloud_row[j].y;
-                  cloudSave.points[j].z = cloud_row[j].z;*/
+/*ERROR IN MEMORY?  */    
+                  // cloudSave[j].points.x=0;// = cloud_row[j].x;
+                  // cloudSave.points[j].x=0;
+                  // cloudSave.points[j].y = cloud_row[j].y;
+                  // cloudSave.points[j].z = cloud_row[j].z;
                   // cloudSave.points[j].rgba = cloud_row[j].rgba;
 
                   // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
+                  // cloudSave.points[j].y = cloudSaveB.points[j].y;
+                  std::cout<<" J:"<< j <<std::endl;
+
+                  }
                 }
                 else {
 /*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
