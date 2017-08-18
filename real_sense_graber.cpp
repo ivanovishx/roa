@@ -335,16 +335,11 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* temp_Matrix; //Body pacient Object
     bool ROA_selected_px = false;
-    //
+    /*send this->*/    pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send thi
+    cloudSave.points.resize (WIDTH * HEIGHT);
+    // pcl::PointCloud<pcl::PointXYZ> cloudSaveB ;
     // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSave (new pcl::PointCloud<pcl::PointXYZ>);
-/*send this->*/    pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send this
-    pcl::PointCloud<pcl::PointXYZ> cloudSaveB ;
-    cloudSave.width = 1024;
-    cloudSave.height = 1024;
 
-    cloudSaveB.width = 1024;
-    cloudSaveB.width = 1024;
-    //
 
     pxcStatus status;
     if (need_xyzrgba_) {
@@ -434,7 +429,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
               memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
           }
         }
-/*this one->*/   else
+        /*this one->*/   else
         {
           xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (WIDTH, HEIGHT));
           xyzrgba_cloud->header.stamp = timestamp;
@@ -467,7 +462,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
                 if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter)
                 {
 
-                  cloud_row[j].rgba = (uint32_t)4278190335; // FF0000FF //aarrggbb //blue FULL
+                  // cloud_row[j].rgba = (uint32_t)4278190335; // FF0000FF //aarrggbb //blue FULL
                   cloud_row[j].rgba = OriginalColor;
                   // ROA_Matrix[j] = cloud_row[j];
                   ROA_selected_px = true;
@@ -475,10 +470,11 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
                 else {
                   ROA_selected_px = false;
                 }
-//xxxxxx
                 if (ROA_selected_px) {
 
-                  if (now_ms() - timerSendPCD > 1000) {
+                  cloudSave.points[j] = xyzrgba_cloud->points[(i * WIDTH) + j];
+                  if (0) {
+                    // if (now_ms() - timerSendPCD > 1000) {
                     std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
                     timerSendPCD = now_ms();
                     // sendPCD();
@@ -504,12 +500,17 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
                     // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
                     // cloudSave.points[j].y = cloudSaveB.points[j].y;
                     std::cout << " J:" << j << std::endl;
-                    std::cout << " x:" <<cloud_row[j].x  <<   std::endl;
-                    std::cout << " y:" <<cloud_row[j].y  <<   std::endl;
-                    std::cout << " z:" <<cloud_row[j].z  <<   std::endl;
-                    std::cout << " rgba:" <<cloud_row[j].rgba <<    std::endl;
+                    std::cout << " x:" << cloud_row[j].x  <<   std::endl;
+                    std::cout << " y:" << cloud_row[j].y  <<   std::endl;
+                    std::cout << " z:" << cloud_row[j].z  <<   std::endl;
+                    std::cout << " rgba:" << cloud_row[j].rgba <<    std::endl;
+
+                    // std::cout << "cloudSaveC -------.>.:" << cloudSaveC.points[j].rgba << std::endl;
+
+
 
                   }
+
                 }
                 else {
                   /*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
@@ -517,11 +518,34 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
                                     cloudSave.points[j].z = 0;
                                    // cloudSave.points[j].rgba = 4278255360;*/
                 }
-                // std::cout << " " << j;
+
+
               }
             }
-          }
-              // std::cout<<std::endl;
+            // std::cout << " " << j;
+          }//end Double nested for Array
+
+//xxxxxx
+
+--->          // sent this to sendPCD()
+          if (now_ms() - timerSendPCD > 10000) {
+            std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+            timerSendPCD = now_ms();
+            for (int i = 0; i < HEIGHT; i++) {
+              int sumRow = 0;
+              for (int j = 0; j < WIDTH; j++) {
+                if (cloudSave.points[j].z != 0) {
+                  std::cout << " " << cloudSave.points[j].z;
+                  sumRow = sumRow + cloudSave.points[j].z;
+
+                }
+              }
+              if (sumRow != 0 )std::cout << std::endl;
+            }
+          }//end if(timer) send
+
+
+          // std::cout<<std::endl;
 
 
 
