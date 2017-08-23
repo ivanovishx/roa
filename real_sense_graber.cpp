@@ -49,7 +49,8 @@ convertPoint (const PXCPoint3DF32& src, T& tgt)
   static const float nan = std::numeric_limits<float>::quiet_NaN ();
   if (src.z == 0)
   {
-    tgt.x = tgt.y = tgt.z = nan;
+    tgt.x = tgt.y = tgt.z = 0;
+    // tgt.x = tgt.y = tgt.z = nan;
   }
   else
   {
@@ -59,6 +60,7 @@ convertPoint (const PXCPoint3DF32& src, T& tgt)
     // tgt.z = src.z / 1000.0;
   }
 }
+
 
 
 inline uint64_t now_ms() {
@@ -313,13 +315,220 @@ pcl::RealSenseGrabber::sendPCD ()
 
 }
 
+/*void pcl::RealSenseGrabber:: update_row_cloud(pcl::PointXYZRGBA* cloud_row) {
+
+  const int WIDTH = mode_selected_.depth_width;
+
+  for (int j = 0; j < WIDTH; j++) {
+
+    if (cloud_row[j].z < 0.7) {
+
+      std::cout << "Pato44535: " << cloud_row[j].rgba << std::endl;
+
+    }
+
+  }
+}*/
+
+void pcl::RealSenseGrabber:: copyCloud( struct individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 )
+{
+  /*okkkkk*/ ROA_individualCloud[index1].x = cloud_row[index2].x;
+  ROA_individualCloud[index1].y = cloud_row[index2].y;
+  ROA_individualCloud[index1].z = cloud_row[index2].z;
+  ROA_individualCloud[index1].rgba = cloud_row[index2].rgba;
+
+}
+//uuuuuuuuuuuuu
+// void pcl::RealSenseGrabber:: update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar) {
+//   //IN this function we will receive a original row and we will:
+//   // #1 filter it by distante
+//   // #2 color range
+//   // #3 set to cero the values that doesnt care for us
+
+
+//   //xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA>);
+//   const int WIDTH = mode_selected_.depth_width;
+//   const int HEIGHT = mode_selected_.depth_height;
+
+//   int distanceZMin = 0;
+//   int distanceZMax = 0.7;
+//   uint32_t TargetColor = (uint32_t)4278190335;//blue
+//   int ColorMaxFilter = 120;//limits for clor range ?
+//   int ColorMinFilter = 90;//limits for clor range ?
+//   bool ROA_selected_px = false;
+//   //////////////////////////////////////////////////////
+//   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr update_cloud;
+//   // update_cloud.points.resize (WIDTH * HEIGHT);
+//   std::cout << "3rd: " <<  frame_Cloud << std::endl; //this is printing the addres that we sent calling this function
+// // frame_Cloud = &update_cloud;
+// // &update_cloud = frame_Cloud;
+//   //////////////////////////////////////////////////////
+//   // memcpy (&frameCloud[j].rgba, &color_row[j], sizeof (uint32_t));
+//   // std::cout <<"2nd: " <<  &frame_Cloud << std::endl;
+//   // std::cout << "3rd: " <<  frame_Cloud->points[5 * WIDTH] << st:d:endl;
+//   // std::cout << "3rd: " <<  frame_Cloud.points[5 * WIDTH] << std::endl;
+//   // std::cout << "3rd: " <<  frame_Cloud->points[5 * WIDTH] << std::endl; //this is printing the addres that we sent calling this function
+
+//   /*xxxxx*/
+//   // pcl::PointXYZRGBA* temp_row_Matrix = &cloudFinal->points[5 * WIDTH];
+//   std::cout << "4th: " <<  cloudFinal->points[(5 * WIDTH) + 200].rgba << std::endl;
+//   std::cout << "5th: " <<  cloudFinal->points[(5 * WIDTH) + 200].z << std::endl;
+//   // pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+
+//   for (int i = 0; i < HEIGHT; i++) {
+
+
+//     for (int j = 0; j < WIDTH; j++) {
+
+
+
+
+//       uint32_t color = cloudFinal->points[(i * WIDTH) + j].rgba;
+
+//       std::cout << "i: " << i << "j: " << j << "Color " << color << std::endl;
+
+//       uint32_t distanceROA = (uint32_t)cloudFinal->points[(i * WIDTH) + j].z;
+
+//       if (distanceROA != 0) {
+
+
+//         std::cout << "pato " << distanceROA << std::endl;
+//       }
+
+// // frame_Cloud->points[(i * WIDTH) + j]->rgba;
+//       // uint32_t color = frame_Cloud->points[(i * WIDTH) + j]->rgba;
+//       // uint32_t color = frame_Cloud[j].rgba;
+//       ////////////////////////////////////START THIS fuction
+//       //here we're filtering by blue color
+
+
+//       if (  distanceROA != 0 ) {
+//         // if ( 0 < distanceROA && distanceROA < 0.7 ) {
+//         std::cout << "7th: " <<  distanceROA << std::endl;
+//       }
+
+
+// // isnan(color);
+
+
+//       if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter) {
+//         // ROA_Cloud.points[j] = frame_Cloud[(i * WIDTH) + j];
+//         // concatenate the clouds
+//         update_cloud->points[(i * WIDTH) + j] = cloudFinal->points[(i * WIDTH) + j];
+
+//         std::cout << "6th: " <<  cloudFinal->points[5 * WIDTH].rgba << std::endl;
+//         std::cout << "7th: " <<  cloudFinal->points[5 * WIDTH].z << std::endl;
+//       }
+//       // else {
+//       // write 0
+//       /*--> ROA_Cloud.points[(i * WIDTH) + j].rgba = (uint32_t)2701131775;//white*/
+//       //add more x y z or a point seted to zero
+//       // }
+
+//       // This must to be inside for lop to evauatle point by point on each row
+//       //        if (0) {
+//       //          std::cout << " J:" << j << std::endl;
+//       //          std::cout << " x:" << frame_Cloud[j].x  <<   std::endl;
+//       //          std::cout << " y:" << frame_Cloud[j].y  <<   std::endl;
+//       //          std::cout << " z:" << frame_Cloud[j].z  <<   std::endl;
+//       //          std::cout << " rgba:" << frame_Cloud[j].rgba <<    std::endl;
+//       // }
+
+
+//     }
+
+//   }
+//   std::cout << "End Procesing... "  << std::endl;
+
+
+// }
+
+// void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {}
+
+void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {
+  //IN this function we will receive a original row and we will:
+  // #1 filter it by distante
+  // #2 color range
+  // #3 set to cero the values that doesnt care for us
+
+
+  // const int WIDTH = mode_selected_.depth_width;
+  // const int HEIGHT = mode_selected_.depth_height;
+  int distanceZMin = 0;
+  int distanceZMax = 0.7;
+  uint32_t TargetColor = (uint32_t)4278190335;//blue
+  int ColorMaxFilter = 120;//limits for clor range ?
+  int ColorMinFilter = 90;//limits for clor range ?
+  bool ROA_selected_px = false;
+
+  uint32_t* color2;//
+  // std::cout << "subCloud addres: " << subCloud << std::endl;
+
+  for (int i = 0; i < HEIGHT; i++) {
+
+    for (int j = 0; j < WIDTH; j++) {
+
+      /*uint32_t**/ color2 = &subCloud[(i * WIDTH) + j].rgba;
+      uint32_t color = subCloud[(i * WIDTH) + j].rgba;//*color2;
+      // uint32_t color = *subCloud[(i * WIDTH) + j].rgba;
+      // uint32_t color = subCloud[(i * WIDTH) + j]->rgba;
+
+      // std::cout << "pato " << color << std::endl;
+
+      // std::cout << "i: " << i << "j: " << j << "Color " << color << std::endl;
+
+
+      float distanceROA = subCloud[(i * WIDTH) + j].z;
+      if (distanceROA > 0.1) {
+
+
+        // std::cout << "pato " << color << std::endl;
+      }
+
+      ////////////////////////////////////START THIS fuction
+      //here we're filtering by blue color
+
+      if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter) {
+
+        
+
+        // std::cout << "blue ROA " << color << std::endl;
+
+      }
+      else {
+        // write 0
+        /*--> ROA_Cloud.points[(i * WIDTH) + j].rgba = (uint32_t)2701131775;//white*/
+        //add more x y z or a point seted to zero
+      }
+
+      // This must to be inside for lop to evauatle point by point on each row
+      //        if (0) {
+      //          std::cout << " J:" << j << std::endl;
+      //          std::cout << " x:" << frame_Cloud[j].x  <<   std::endl;
+      //          std::cout << " y:" << frame_Cloud[j].y  <<   std::endl;
+      //          std::cout << " z:" << frame_Cloud[j].z  <<   std::endl;
+      //          std::cout << " rgba:" << frame_Cloud[j].rgba <<    std::endl;
+      // }
+
+
+    }
+
+  }
+  // std::cout << "End Procesing... "  << std::endl;
+
+
+}
 
 void
 pcl::RealSenseGrabber::run ()//rrrrrrrrr
 {
-  const int WIDTH = mode_selected_.depth_width;
-  const int HEIGHT = mode_selected_.depth_height;
-  const int SIZE = WIDTH * HEIGHT;
+  // const int WIDTH = mode_selected_.depth_width;
+  // const int HEIGHT = mode_selected_.depth_height;
+
+// pcl::RealSenseGrabber::individualCloud:: ccc[400];
+
+  // printf("W:%d H:%d\n", WIDTH, HEIGHT );
+  // const int SIZE = WIDTH * HEIGHT;
   static uint64_t timerSendPCD = now_ms();
 
   PXCProjection* projection = device_->getPXCDevice ().CreateProjection ();
@@ -329,17 +538,26 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
   std::cout << "Runing" << std::endl;
   while (is_running_)
   { //ddddddddddd
-    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud;
+
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr xyzrgba_cloud;
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ROA_Matrix; //Robotic Arm Object
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* temp_Matrix; //Body pacient Object
-    bool ROA_selected_px = false;
-    /*send this->*/    pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send thi
-    cloudSave.points.resize (WIDTH * HEIGHT);
-    // pcl::PointCloud<pcl::PointXYZ> cloudSaveB ;
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudSave (new pcl::PointCloud<pcl::PointXYZ>);
+    // ROA_Matrix.points.resize (WIDTH * HEIGHT);
 
+    // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
+    /*send this->*/
+    pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send this
+
+    cloudSave.points.resize (WIDTH * HEIGHT);
+
+    // pcl::PointXYZRGBA* ROA_Cloud;
+    // pcl::PointXYZRGBA* ROA_Cloud = &cloudSave;
+    // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ROA_Cloud;// = &cloudSave;
+    // ROA_Cloud = &xyzrgba_cloud->points[0];
+
+    // processingCloud(&ROA_individualCloud[0]);
+    // std::cout << "ROA_individualCloud addres: " << ROA_individualCloud << std::endl;
+    // /*ROA*/processingCloud(ROA_individualCloud);
+    // /*RBODYP*/processingCloud(BODYP_individualCloud);
 
     pxcStatus status;
     if (need_xyzrgba_) {
@@ -394,180 +612,100 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
       projection->QueryVertices (sample.depth, vertices.data ());
 
-      if (need_xyz_)
-      {
-        xyz_cloud.reset (new pcl::PointCloud<pcl::PointXYZ> (WIDTH, HEIGHT));
-        xyz_cloud->header.stamp = timestamp;
-        xyz_cloud->is_dense = false;
-        for (int i = 0; i < SIZE; i++)
-          // convertPoint (251, xyz_cloud->points[i]);
-          convertPoint (vertices[i], xyz_cloud->points[i]); //<--- converts from IntelSDK to PCL
-      }
-
       if (need_xyzrgba_)
-      {
+      { ////set image adquisition
         PXCImage::ImageData data;
         PXCImage* mapped = projection->CreateColorImageMappedToDepth (sample.depth, sample.color);
         mapped->AcquireAccess (PXCImage::ACCESS_READ, &data);
         uint32_t* d = reinterpret_cast<uint32_t*> (data.planes[0]);
-        if (need_xyz_)
+////////////////convert
+        xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (WIDTH, HEIGHT));
+        xyzrgba_cloud->header.stamp = timestamp;
+        xyzrgba_cloud->is_dense = false;
+// xxxxxxxx
+
+        // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud2;
+        // pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud2;
+        // update_ROA_cloud(frame_Cloud2, ROA_Cloud2, 0 );
+        /*   ok   update_ROA_cloud(&xyzrgba_cloud, &cloudSave, 0 );*/
+
+
+
+        // update_ROA_cloud(xyzrgba_cloud, cloudSave, 0 );
+
+        // update_ROA_cloud(&xyzrgba_cloud->points[0], cloudSave,0);
+        // update_BODYP_cloud(xyzrgba_cloud, ROA_Matrix);
+
+
+
+        /*This changes the screen code:*/
+        for (int i = 0; i < HEIGHT; i++)
         {
-          // We can fill XYZ coordinates more efficiently using pcl::copyPointCloud,
-          // given that they were already computed for XYZ point cloud.
-          xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA>);
-          pcl::copyPointCloud (*xyz_cloud, *xyzrgba_cloud);
-          xyzrgba_cloud->is_dense = false;
-          for (int i = 0; i < HEIGHT; i++)
-          {
-            pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+          PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
 
-            // uint32_t ja = 120;
-            // uint32_t* color_row = &ja;
+          pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];//we are moving the pointer WIDTH points position each loop(i x Points/row)
+          uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)]; // <---------- position of color map and XYZ position
+          for (int j = 0; j < WIDTH; j++) {
+            convertPoint (vertices_row[j], cloud_row[j]);
+            memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
 
-            uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
-            for (int j = 0; j < WIDTH; j++)
-              memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
+            // pcl::PointXYZRGBA send_row = *color_row;
+
+            // update_row_cloud(send_row);///uuuuuuuuuuuuuuu
+            copyCloud( ROA_individualCloud, cloud_row, ((i * WIDTH) + j), j);
+            /*okkkkk ROA_individualCloud[(i * WIDTH) + j].x = cloud_row[j].x;
+             ROA_individualCloud[(i * WIDTH) + j].y = cloud_row[j].y;
+             ROA_individualCloud[(i * WIDTH) + j].z = cloud_row[j].z;
+             ROA_individualCloud[(i * WIDTH) + j].rgba = cloud_row[j].rgba;
+            */
+            uint32_t color = cloud_row[j].rgba;
+            uint32_t OriginalColor = color;
+            /**///cloud_row[j].rgba = (uint32_t)2701131775;//white
+
+            if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
+              /**///cloud_row[j].rgba = (uint32_t)4294902015;//fushia
+
+              // ROA_Matrix = xyzrgba_cloud;
+
+
+            }//END if < 0.7
           }
-        }
-        /*this one->*/   else
-        {
-          xyzrgba_cloud.reset (new pcl::PointCloud<pcl::PointXYZRGBA> (WIDTH, HEIGHT));
-          xyzrgba_cloud->header.stamp = timestamp;
-          xyzrgba_cloud->is_dense = false;
-
-          for (int i = 0; i < HEIGHT; i++)
-          {
-            PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
-            //we are moving the pointer WIDTH points position each loop(i x Points/row)
-            pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+        }//end Double nested for Array
 
 
-            uint32_t ja = 120;
-            // uint32_t* color_row = &ja;
-            // uint32_t* color_row = &d[i * (data.pitches[0]/2) / sizeof (uint32_t)];
-            uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)]; // <---------- position of color map and XYZ position
-            for (int j = 0; j < WIDTH; j++) {
-              convertPoint (vertices_row[j], cloud_row[j]);
-              memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
-              uint32_t color = cloud_row[j].rgba;
-              uint32_t OriginalColor = color;
-              cloud_row[j].rgba = (uint32_t)2701131775;
-
-              if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
-                cloud_row[j].rgba = (uint32_t)4294902015;//fushia
-
-                int ColorMaxFilter = 120;//130
-                int ColorMinFilter = 90;//80
-                /*BLUE*/
-                if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter)
-                {
-
-                  // cloud_row[j].rgba = (uint32_t)4278190335; // FF0000FF //aarrggbb //blue FULL
-                  cloud_row[j].rgba = OriginalColor;
-                  // ROA_Matrix[j] = cloud_row[j];
-                  ROA_selected_px = true;
-                }
-                else {
-                  ROA_selected_px = false;
-                }
-                if (ROA_selected_px) {
-
-                  cloudSave.points[j] = xyzrgba_cloud->points[(i * WIDTH) + j];
-                  if (0) {
-                    // if (now_ms() - timerSendPCD > 1000) {
-                    std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
-                    timerSendPCD = now_ms();
-                    // sendPCD();
-
-                    // std::cout<<" cloud_a.points.size (): "<<  xyz_cloud.points.size () <<std::endl;
-                    // ROA_Matrix[j] = &cloud_row[j];
-                    // ROA_Matrix[j] = xyzrgba_cloud->points[i * WIDTH];
-
-                    // &ROA_Matrix->points[i * WIDTH] =  &xyzrgba_cloud->points[i * WIDTH];
-                    // temp_Matrix.points = *temp_row_Matrix;
-                    //OK pcl::PointXYZRGBA* temp_row_Matrix = &xyzrgba_cloud->points[i * WIDTH];
-                    /*samples*/
-                    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloudRead (new pcl::PointCloud<pcl::PointXYZ>);
-                    // printf("width:%d\n", cloudSave.width );
-
-                    /*ERROR IN MEMORY?  */
-                    // cloudSave[j].points.x=0;// = cloud_row[j].x;
-                    // cloudSave.points[j].x=0;
-                    // cloudSave.points[j].y = cloud_row[j].y;
-                    // cloudSave.points[j].z = cloud_row[j].z;
-                    // cloudSave.points[j].rgba = cloud_row[j].rgba;
-
-                    // &ROA_Matrix->points[i * WIDTH] = *temp_Matrix;
-                    // cloudSave.points[j].y = cloudSaveB.points[j].y;
-                    std::cout << " J:" << j << std::endl;
-                    std::cout << " x:" << cloud_row[j].x  <<   std::endl;
-                    std::cout << " y:" << cloud_row[j].y  <<   std::endl;
-                    std::cout << " z:" << cloud_row[j].z  <<   std::endl;
-                    std::cout << " rgba:" << cloud_row[j].rgba <<    std::endl;
-
-                    // std::cout << "cloudSaveC -------.>.:" << cloudSaveC.points[j].rgba << std::endl;
-
-
-
-                  }
-
-                }
-                else {
-                  /*ERROR IN MEMORY?     cloudSave.points[j].x = 0;
-                                    cloudSave.points[j].y = 0;
-                                    cloudSave.points[j].z = 0;
-                                   // cloudSave.points[j].rgba = 4278255360;*/
-                }
-
-
-              }
-            }
-            // std::cout << " " << j;
-          }//end Double nested for Array
-
-//xxxxxx
-
---->          // sent this to sendPCD()
-          if (now_ms() - timerSendPCD > 10000) {
-            std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
-            timerSendPCD = now_ms();
-            for (int i = 0; i < HEIGHT; i++) {
-              int sumRow = 0;
-              for (int j = 0; j < WIDTH; j++) {
-                if (cloudSave.points[j].z != 0) {
-                  std::cout << " " << cloudSave.points[j].z;
-                  sumRow = sumRow + cloudSave.points[j].z;
-
-                }
-              }
-              if (sumRow != 0 )std::cout << std::endl;
-            }
-          }//end if(timer) send
-
-
-          // std::cout<<std::endl;
-
-
-
-          // SAVE START
-          // pcl::io::savePCDFileASCII ("test_pcd.pcd", cloudSave);
-          // std::cerr << "Saved " << cloudSave.points.size () << " data points to test_pcd.pcd." << std::endl;
-          // for (size_t k = 0; k < cloudSave.points.size (); ++k)
-          // { std::cerr << "    " << cloudSave.points[k].x << " " << cloudSave.points[k].y << " " << cloudSave.points[k].z << std::endl;}
-
-          // SAVE END
-        }
+        /*ROA*/processingCloud(ROA_individualCloud);
         mapped->ReleaseAccess (&data);
         mapped->Release ();
       }
 
-      if (need_xyzrgba_)
-        // xyzrgba_cloud->is_dense = false;
-        point_cloud_rgba_signal_->operator () (xyzrgba_cloud);
-      // point_cloud_rgba_signal_->operator () (xyzrgba_cloud);
+      if (need_xyzrgba_) {point_cloud_rgba_signal_->operator () (xyzrgba_cloud);}
 
-      if (need_xyz_)
-        point_cloud_signal_->operator () (xyz_cloud);
+      ////---------------CLOUD ADQUISITION/PROCESIONG END
+
+      ////----------------- START SEND over TCP
+
+      ///tttttttttttt
+      if (now_ms() - timerSendPCD > 3000) {
+        std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+        timerSendPCD = now_ms();
+
+        // std::cout << "1st: " << &xyzrgba_cloud << std::endl;
+
+        // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudFinal = xyzrgba_cloud;
+        //uuuuuu update_ROA_cloud(ROA_Matrix, &xyzrgba_cloud, &cloudSave, 0 );
+
+        // sendPCD(socket, ROA_Matrix);
+      }
+
+      // SAVE START
+      // pcl::io::savePCDFileASCII ("test_pcd.pcd", cloudSave);
+      // std::cerr << "Saved " << cloudSave.points.size () << " data points to test_pcd.pcd." << std::endl;
+      // for (size_t k = 0; k < cloudSave.points.size (); ++k)
+      // { std::cerr << "    " << cloudSave.points[k].x << " " << cloudSave.points[k].y << " " << cloudSave.points[k].z << std::endl;}
+
+      // SAVE END
+
+
       break;
     }
     case PXC_STATUS_DEVICE_LOST:
@@ -582,7 +720,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
 }
 
 float
-pcl::RealSenseGrabber::computeModeScore (const Mode& mode)
+pcl::RealSenseGrabber::computeModeScore (const Mode & mode)
 {
   const float FPS_WEIGHT = 100000;
   const float DEPTH_WEIGHT = 1000;
