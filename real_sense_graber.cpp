@@ -1,21 +1,23 @@
-/*void cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud)
-  {
-
-    uint32_t color=*(reinterpret_cast<const int *>(&(cloud->points [(cloud->width >> 1) * (cloud->height + 1)].rgb)));
-
-    std::cout<<"distance of center pixel : "<<cloud->points [(cloud->width >> 1) * (cloud->height + 1)].z<<" m."<<std::endl;
-    std::cout<<"the RGB values : "<<((color>>16)&0x0000FF)<<" "<<((color>>8)&0x0000FF)<<" "<<((color)&0x0000FF)<<std::endl;
-      count = 0;
-
-  if (!viewer.wasStopped())
-         viewer.showCloud (cloud);
-  }
-*/
-
+// =============================================================================
+//
+//  ROA
+//  Main
+//
+//  Created by Ivan Lozano 6/20/17.
+//
+//  For research purposes using Realsense SR300 Camera
+//
+// =============================================================================
 
 #include <iostream>
 
 using namespace std;
+//----------Server-----------------
+#include "serverROA.h"
+
+// WORD versionWanted = MAKEWORD(1, 1);
+// WSADATA wsaData;
+// WSAStartup(versionWanted, &wsaData);
 ///////////////////////////////////////
 
 #include <boost/lexical_cast.hpp>
@@ -290,6 +292,7 @@ pcl::RealSenseGrabber::setMode (const Mode& mode, bool strict)
 // pcl::RealSenseGrabber::splitColorsRGBA(int RGBASource)
 
 void //ssssssss
+// pcl::RealSenseGrabber::  sendPCD(struct individualCloud* subCloud, socket)
 pcl::RealSenseGrabber::sendPCD ()
 {
   pcl::PointCloud<pcl::PointXYZ> cloud;
@@ -490,7 +493,7 @@ void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {
 
       if (((color >> 16) & 0x0000FF) < ColorMinFilter && ((color >> 8) & 0x0000FF) <  ColorMinFilter && ((color) & 0x0000FF) >= ColorMaxFilter) {
 
-        
+
 
         // std::cout << "blue ROA " << color << std::endl;
 
