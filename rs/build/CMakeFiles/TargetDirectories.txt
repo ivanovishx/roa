@@ -1,0 +1,4 @@
+C:/Users/Ivan/Documents/tesis/rs/build/CMakeFiles/real_sense.dir
+C:/Users/Ivan/Documents/tesis/rs/build/CMakeFiles/real_sense_viewer.dir
+C:/Users/Ivan/Documents/tesis/rs/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Ivan/Documents/tesis/rs/build/CMakeFiles/ZERO_CHECK.dir
