@@ -34,13 +34,17 @@
 #define BUFLEN 2048
 #define MSGS 5	/* number of messages to send */
 
+struct sockaddr_in myaddr, remaddr;
+int fd, i, slen = sizeof(remaddr);
+char buf[BUFLEN];	/* message buffer */
+int recvlen;		/* # bytes in acknowledgement message */
+char *server = "127.0.0.1";	/* change this to use a different server */
+
+void writeSocket();
+void readSocket();
+
 int main(void)
 {
-	struct sockaddr_in myaddr, remaddr;
-	int fd, i, slen = sizeof(remaddr);
-	char buf[BUFLEN];	/* message buffer */
-	int recvlen;		/* # bytes in acknowledgement message */
-	char *server = "127.0.0.1";	/* change this to use a different server */
 
 	/* create a socket */
 	WSADATA Data;
@@ -89,7 +93,43 @@ int main(void)
 			printf("received message: \"%s\"\n", buf);
 		}
 	}
+
+
+	//Listen new messages from ROA_SERVER sending individualCloud:
+	printf("\nListening comming Cloud Packets:\n");
+
+	while (1) {
+
+		// writeSocket();
+		readSocket();
+
+	}
+	//END
 	WSACleanup(); //call this for destructor
 	// close(fd);
 	return 0;
+}
+
+
+void writeSocket() {
+
+	i=9;
+	printf("Sending packet %d to %s port %d\n", i, server, SERVICE_PORT);
+	sprintf(buf, "This is packet %d CODE:0xA185FFFF", i);
+	if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1) {
+		perror("sendto");
+		exit(1);
+	}
+
+}
+
+
+void readSocket() {
+	recvlen = recvfrom(fd, buf, BUFLEN, 0, (struct sockaddr *)&remaddr, &slen);
+	if (recvlen >= 0) {
+		buf[recvlen] = 0;	/* expect a printable string - terminate it */
+		printf("received message: \"%s\"\n", buf);
+	}
+
+
 }

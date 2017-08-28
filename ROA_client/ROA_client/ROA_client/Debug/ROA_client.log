@@ -1,5 +1,2 @@
-﻿  ROA_client.cpp
-c:\users\ivan\documents\tesis\roa_client\roa_client\roa_client\roa_client.cpp(80): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
-  ROA_client.vcxproj -> C:\Users\Ivan\Documents\tesis\ROA_client\ROA_client\Debug\ROA_client.exe
-  ROA_client.vcxproj -> C:\Users\Ivan\Documents\tesis\ROA_client\ROA_client\Debug\ROA_client.pdb (Partial PDB)
+﻿  ROA_client.vcxproj -> C:\Users\Ivan\Documents\tesis\roa\ROA_client\ROA_client\Debug\ROA_client.exe
+  ROA_client.vcxproj -> C:\Users\Ivan\Documents\tesis\roa\ROA_client\ROA_client\Debug\ROA_client.pdb (Partial PDB)
