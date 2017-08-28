@@ -10,9 +10,11 @@
 //use format from netpipe
 
 #include "serverROA.h"
-// #include "gcs_pkt.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <windows.h>
+#include <string>
+//#include "tasksThread.h"
 
 
 //-------------------------
@@ -38,16 +40,46 @@
 // #define XDEBUG_LOG(M, ...)
 // #define Xprintf(M, ...)
 
+//ssssssss
+// bool serverROA::sendIndividualCloud(individualCloud* sendCloud) {
+bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
 
+  char* buffer = new char[BUFSIZE]; /* receive buffer */
+
+  std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
+strcpy(buffer, sendText.c_str());
+  // buffer[0] = &sendText; 
+  // buffer = "sending individualCloud struct"; 
+
+  printf("sending response \"%s\"\n", buffer);
+  if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
+
+    perror("sendto error?");
+    return 0;
+  }
+
+
+  return 1;
+}
 
 
 serverROA::serverROA() {
 
   // loop = 1;
   // count = read_index=write_index=0;
+
+  printf("\nInside serverROA.cpp\n");
+  //ScheduleTask* taskHandeler = new ScheduleTask();
+
   initialize_connection();
   listener();
 
+
+
+  // while (1) {
+  //   sendIndividualCloud(ROA_individualCloud);
+  //   Sleep(1000);
+  // }
 
 //create protocol packet class or send PCD---------------
   // gcspkt = new cGcsPkt();
@@ -64,11 +96,12 @@ serverROA::serverROA() {
   // printf("SYSTEM MSSG: ServerROA Thread created.\n");
 }
 
-void serverROA::listener(){
-    /* now loop, receiving data and printing what we received */
+void serverROA::listener() {
+  /* now loop, receiving data and printing what we received */
   char* buffer = new char[BUFSIZE]; /* receive buffer */
   /* now loop, receiving data and printing what we received */
-  while (1) {
+  // while (1) {
+  for (int i = 0; i < 4; i++) {
     printf("waiting on port %d\n", ROA_TX_PORT);
     recvlen = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
     if (recvlen > 0) {
@@ -83,6 +116,7 @@ void serverROA::listener(){
       perror("sendto");
   }
 }
+
 
 
 void* serverROA::main_thread_entry(void* arg)

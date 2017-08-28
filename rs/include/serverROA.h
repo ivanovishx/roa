@@ -10,13 +10,18 @@
 #ifndef __server_ROA_H__
 #define __server_ROA_H__
 
+//#include <tasksThread.h>
+
 // #define WIN32//this is defined by Visual Basic Compiler
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #ifdef WIN32
-// #include <thread>  
+#define HAVE_STRUCT_TIMESPEC
+//#include "pthread.h"
+// #include <thread>
+#include <stdint.h>
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -33,8 +38,9 @@
 #endif // WIN32
 
 // Thread:
-#include <pthread.h>
+//#include <pthread.h>
 // HANDLE Mutex;
+
 
 //Socket:
 static char ServerIPPointerHub[15] = "127.0.0.1";
@@ -47,6 +53,7 @@ static char ServerIPPointerHub[15] = "127.0.0.1";
 //#define RECEIVE_THREAD_1 1
 #define BUFSIZE 2048
 // #define RECEIVER_QUEUE_SIZE 4
+// namespace server{
 
 
 class serverROA//cGcsReceiver
@@ -84,11 +91,26 @@ private:
 	int count;
 
 public:
+
+	struct individualCloud
+	{
+		float x = 0;
+		float y = 0;
+		float z = 0;
+		uint32_t rgba = 0xFF00FF44;
+		// uint32_t rgba = 0; 
+
+	};
+
+	// server::individualCloud* ROA_individualCloud2 = new server::individualCloud[307200];
+	struct individualCloud* ROA_individualCloud = new individualCloud[307200];
+	struct individualCloud* BODYP_individualCloud = new individualCloud[307200];
+
 	serverROA();
 	~serverROA();
 	// transmitPacket(cGcsPkt* packet);
 
-
+	bool sendIndividualCloud(individualCloud* sendCloud);
 	// uint8_t* receivePacket(pktFormat_t* packet);
 	int initialize_connection(void);
 	//static void* threadEntryPoint(void* p);
@@ -110,4 +132,5 @@ public:
 
 };
 
+// }//end namespace server::
 #endif //__server_ROA_H__

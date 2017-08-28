@@ -42,6 +42,7 @@ using namespace std;
 
 using namespace pcl::io;
 using namespace pcl::io::real_sense;
+// using namespace server;
 
 /* Helper function to convert a PXCPoint3DF32 point into a PCL point.
  * Takes care of unit conversion (PXC point coordinates are in millimeters)
@@ -335,7 +336,7 @@ pcl::RealSenseGrabber::sendPCD ()
   }
 }*/
 
-void pcl::RealSenseGrabber:: copyCloud( struct individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 )
+void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 )
 {
   /*okkkkk*/ ROA_individualCloud[index1].x = cloud_row[index2].x;
   ROA_individualCloud[index1].y = cloud_row[index2].y;
@@ -450,7 +451,8 @@ void pcl::RealSenseGrabber:: copyCloud( struct individualCloud* subCloud, pcl::P
 
 // void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {}
 
-void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {
+// void pcl::RealSenseGrabber::processingCloud(struct serverROA::individualCloud* subCloud) {
+  void pcl::RealSenseGrabber::processingCloud(struct serverROA::individualCloud* subCloud) {
   //IN this function we will receive a original row and we will:
   // #1 filter it by distante
   // #2 color range
@@ -540,6 +542,8 @@ serverROA* server_TCP_ROA = new serverROA();
 // serverROA server_TCP_ROA;
 //Server Ends  
 
+
+
   PXCProjection* projection = device_->getPXCDevice ().CreateProjection ();
   PXCCapture::Sample sample;
   std::vector<PXCPoint3DF32> vertices (SIZE);
@@ -547,6 +551,7 @@ serverROA* server_TCP_ROA = new serverROA();
   std::cout << "Runing" << std::endl;
   while (is_running_)
   { //ddddddddddd
+
 
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr xyzrgba_cloud;
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ROA_Matrix; //Robotic Arm Object
@@ -661,7 +666,7 @@ serverROA* server_TCP_ROA = new serverROA();
             // pcl::PointXYZRGBA send_row = *color_row;
 
             // update_row_cloud(send_row);///uuuuuuuuuuuuuuu
-            copyCloud( ROA_individualCloud, cloud_row, ((i * WIDTH) + j), j);
+           // /*ROA ok*/copyCloud( ROA_individualCloud, cloud_row, ((i * WIDTH) + j), j);
             /*okkkkk ROA_individualCloud[(i * WIDTH) + j].x = cloud_row[j].x;
              ROA_individualCloud[(i * WIDTH) + j].y = cloud_row[j].y;
              ROA_individualCloud[(i * WIDTH) + j].z = cloud_row[j].z;
@@ -682,7 +687,7 @@ serverROA* server_TCP_ROA = new serverROA();
         }//end Double nested for Array
 
 
-        /*ROA*/processingCloud(ROA_individualCloud);
+        /*ROA*///processingCloud(ROA_individualCloud);
         mapped->ReleaseAccess (&data);
         mapped->Release ();
       }
@@ -697,6 +702,10 @@ serverROA* server_TCP_ROA = new serverROA();
       if (now_ms() - timerSendPCD > 3000) {
         std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
         timerSendPCD = now_ms();
+      /*sssssss*/  server_TCP_ROA->sendIndividualCloud(ROA_individualCloud);
+
+        printf("ADD1: %p ADD2: %p\n",ROA_individualCloud[1],ROA_individualCloud[2] );
+
 
         // std::cout << "1st: " << &xyzrgba_cloud << std::endl;
 

@@ -9,6 +9,7 @@
 #include <pcl/io/grabber.h>
 
 #include "real_sense/time.h"
+#include "serverROA.h"
 
 namespace pcl
 {
@@ -180,27 +181,30 @@ public:
 
 private:
 
-  struct individualCloud
-  {
-    float x = 0;
-    float y = 0;
-    float z = 0;
-    uint32_t rgba = 0;
+  // struct individualCloud
+  // {
+  //   float x = 0;
+  //   float y = 0;
+  //   float z = 0;
+  //   uint32_t rgba = 0;
 
-  };
+  // };
 
 
   const int WIDTH = 640;
   const int HEIGHT = 480;
   const uint32_t SIZE = 307200; //640x480 = 307,200
   // struct individualCloud ROA_individualCloud[92000];
-  
-  struct individualCloud* ROA_individualCloud = new individualCloud[307200];
-  struct individualCloud* BODYP_individualCloud = new individualCloud[307200];
-
+  // server::serverROA::individualCloud* ROA_individualCloud2 = new serverROA::individualCloud[307200];
+  // serverROA::individualCloud* ROA_individualCloud = new serverROA::individualCloud[307200];
+  struct serverROA::individualCloud* ROA_individualCloud = new struct serverROA::individualCloud[307200];
+  struct serverROA::individualCloud* BODYP_individualCloud = new struct serverROA::individualCloud[307200];
+  /**///individualCloud* ROA_individualCloud = new individualCloud[307200];
+  /**///individualCloud* BODYP_individualCloud = new individualCloud[307200];
   /**/void  sendPCD();
-  /**/void processingCloud(struct individualCloud* subCloud);
-  /**/void copyCloud( struct individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 );
+  // /**/void processingCloud(struct serverROA::individualCloud* subCloud);
+  /**/void processingCloud(struct serverROA::individualCloud* subCloud);
+  /**/void copyCloud( struct serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 );
   // void  update_row_cloud(pcl::PointXYZRGBA* cloud_row);
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
