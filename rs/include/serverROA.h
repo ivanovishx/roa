@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys\timeb.h>
 
 #ifdef WIN32
 #define HAVE_STRUCT_TIMESPEC
@@ -85,22 +86,28 @@ private:
 	int optval; /* flag value for setsockopt */
 
 
+	struct timeb start; //now_ms
 	// pthread_mutex_t count_mutex;
 	int write_index;
 	int read_index;
 	int count;
 
+	const int WIDTH = 640;
+	const int HEIGHT = 480;
+	const uint32_t SIZE = 307200;
+
 public:
 
-	struct individualCloud
+	typedef struct individualCloud
 	{
+		uint32_t index;
 		float x = 0;
 		float y = 0;
 		float z = 0;
 		uint32_t rgba = 0xFF00FF44;
-		// uint32_t rgba = 0; 
+		// uint32_t rgba = 0;
 
-	};
+	} typeIndividualCloud;
 
 	// server::individualCloud* ROA_individualCloud2 = new server::individualCloud[307200];
 	struct individualCloud* ROA_individualCloud = new individualCloud[307200];
@@ -109,8 +116,10 @@ public:
 	serverROA();
 	~serverROA();
 	// transmitPacket(cGcsPkt* packet);
-
-	bool sendIndividualCloud(individualCloud* sendCloud);
+	long now_ms();
+	bool serverROA::sendTCPpack(char* buffer);
+	bool sendIndividualPoint( individualCloud* sendCloud);
+	bool sendIndividualCloud( individualCloud* sendCloud);
 	// uint8_t* receivePacket(pktFormat_t* packet);
 	int initialize_connection(void);
 	//static void* threadEntryPoint(void* p);

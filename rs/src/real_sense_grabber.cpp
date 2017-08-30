@@ -702,8 +702,8 @@ serverROA* server_TCP_ROA = new serverROA();
       if (now_ms() - timerSendPCD > 3000) {
         std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
         timerSendPCD = now_ms();
-      /*sssssss*/  server_TCP_ROA->sendIndividualCloud(ROA_individualCloud);
-
+      /*sssssss*/  server_TCP_ROA->sendIndividualPoint(ROA_individualCloud);
+        ///*sssssss*/  server_TCP_ROA->sendIndividualCloud(ROA_individualCloud);
         printf("ADD1: %p ADD2: %p\n",ROA_individualCloud[1],ROA_individualCloud[2] );
 
 
