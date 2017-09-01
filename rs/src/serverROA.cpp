@@ -26,22 +26,6 @@
 
 #undef DEBUG_PRINT
 
-// #define DEBUG_FATAL(M, ...) {fprintf(stderr,M,##__VA_ARGS__);fflush(stdout);}
-// #define printf(M, ...) {fprintf(stderr,M,##__VA_ARGS__);fflush(stdout);}
-
-// #if 0
-// #define DEBUG_PRINT(M, ...)
-// #define DEBUG_ERROR(M, ...)
-// #define DEBUG_LOG(M, ...)
-// #else
-// #define DEBUG_PRINT(M, ...) {fprintf(stderr,M,##__VA_ARGS__);fflush(stdout);}
-// #define DEBUG_ERROR(M, ...) {fprintf(stderr,M,##__VA_ARGS__);fflush(stdout);}
-// #define DEBUG_LOG(M, ...)   {fprintf(stderr,M,##__VA_ARGS__);fflush(stdout);}
-// #endif
-// #define XDEBUG_PRINT(M, ...)
-// #define XDEBUG_ERROR(M, ...)
-// #define XDEBUG_LOG(M, ...)
-// #define Xprintf(M, ...)
 
 long serverROA::now_ms() {
 
@@ -49,7 +33,6 @@ long serverROA::now_ms() {
   long timestamp = clock();
   return timestamp;
 }
-
 
 //ssssssss
 bool serverROA::sendTCPpack(char* buffer) {
@@ -62,12 +45,27 @@ bool serverROA::sendTCPpack(char* buffer) {
 
 }
 
-// bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
-bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
-  char* buffer = new char[BUFSIZE]; /* receive buffer */
-  // sendCloud[2000];
 
-  // std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
+bool serverROA::send_start_pkt() {
+  
+  char* buffer = new char[BUFSIZE];
+  /*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  sprintf (buffer, "$START;");
+  return sendTCPpack(buffer);
+}
+
+bool serverROA::send_end_pkt() {
+
+char* buffer = new char[BUFSIZE];
+  printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  /*optional*/sprintf (buffer, "$END;");
+  return sendTCPpack(buffer);
+}
+
+
+bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
+  char* buffer = new char[BUFSIZE]; 
+   // std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
   // strcpy(buffer, sendText.c_str());
   // buffer[0] = &sendText;
   // buffer = "sending individualCloud struct";
@@ -78,10 +76,10 @@ bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
   sendTCPpack(buffer);
 
   for (int i = 0; i < SIZE; i++ ) {
-   //ssssssss
-    /**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)i, (float)11, (float)12, (float)13, sendCloud[i].rgba);
+    //ssssssss
+    ///**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)i, (float)11, (float)12, (float)13, sendCloud[i].rgba);
 
-    ///**/sprintf (buffer, "$%u,%f,%f,%f,%u;", i, sendCloud[i].x, sendCloud[i].y, sendCloud[i].z, sendCloud[i].rgba);
+    /**/sprintf (buffer, "$%u,%f,%f,%f,%u;", i, sendCloud[i].x, sendCloud[i].y, sendCloud[i].z, sendCloud[i].rgba);
     // /**/printf("sending response \"%s\"\n", buffer);
     if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
       perror("sendto error?");
@@ -97,7 +95,7 @@ bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
   return 1;
 }
 
-// bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
+
 bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
   char* buffer = new char[BUFSIZE]; /* receive buffer */
   std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
@@ -119,35 +117,17 @@ bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
 
 serverROA::serverROA() {
 
-  // loop = 1;
-  // count = read_index=write_index=0;
-
   printf("\nInside serverROA.cpp\n");
   //ScheduleTask* taskHandeler = new ScheduleTask();
 
   initialize_connection();
   listener();
 
-
-
   // while (1) {
   //   sendIndividualCloud(ROA_individualCloud);
   //   Sleep(1000);
   // }
 
-//create protocol packet class or send PCD---------------
-  // gcspkt = new cGcsPkt();
-  // if (gcspkt == NULL)
-  // {
-  // DEBUG_ERROR("<serverROA> Memory allocation failed \n");
-  // }
-//create thread ------------------------
-  // int err = pthread_create(&(thread_id[RECEIVE_THREAD_0]), NULL, serverROA::threadEntryPoint, (void *)this);
-  // int err = pthread_create(&(thread_id), NULL, serverROA::threadEntryPoint, (void *)this);
-  // if (err != 0) {
-  //   printf("FATAL ERROR:: Thread not created %s\n", strerror(err));
-  // }
-  // printf("SYSTEM MSSG: ServerROA Thread created.\n");
 }
 
 void serverROA::listener() {
@@ -250,42 +230,6 @@ int serverROA::get_buffer_occupancy(void)
   return count;
 }
 
-// void serverROA::write_into_rPacketBuf(pktFormat_t wPacketVariable)
-// {
-// pthread_mutex_lock(&count_mutex);
-
-// if(count >= RECEIVER_QUEUE_SIZE)
-// {
-//   printf("error %d\n",count);
-//   pthread_mutex_unlock(&count_mutex);
-//   printf("\nERROR:-----------> exiting buffer size\n");fflush(stdout);
-// }
-// count++;
-// printf("count %d  wI %d\n",count,write_index);
-// rPacketBuf[write_index] = wPacketVariable;
-
-// write_index=((write_index+1)%RECEIVER_QUEUE_SIZE);
-// pthread_mutex_unlock(&count_mutex);
-
-// }
-
-// pktFormat_t* serverROA::read_from_rPacketBuf(void)
-// {
-//   int r=0;
-//   if(count>0)
-//   {
-//     pthread_mutex_lock(&count_mutex);
-//     count--;
-//     r = read_index;
-//     read_index=((read_index+1)%RECEIVER_QUEUE_SIZE);
-//     pthread_mutex_unlock(&count_mutex);
-//     return  rPacketBuf + r;
-//   }
-//   else
-//     return NULL;
-
-
-// }
 
 int serverROA::initialize_connection()
 {

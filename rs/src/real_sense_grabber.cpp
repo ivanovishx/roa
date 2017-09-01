@@ -16,7 +16,7 @@ using namespace std;
 //----------Server-----------------
 #include "serverROA.h"
 // #include <exception>         // For exception class
-// #include <winsock.h> 
+// #include <winsock.h>
 // WORD versionWanted = MAKEWORD(1, 1);
 // WSADATA wsaData;
 // WSAStartup(versionWanted, &wsaData);
@@ -338,7 +338,8 @@ pcl::RealSenseGrabber::sendPCD ()
 
 void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 )
 {
-  /*okkkkk*/ ROA_individualCloud[index1].x = cloud_row[index2].x;
+  /*okkkkk*/
+  ROA_individualCloud[index1].x = cloud_row[index2].x;
   ROA_individualCloud[index1].y = cloud_row[index2].y;
   ROA_individualCloud[index1].z = cloud_row[index2].z;
   ROA_individualCloud[index1].rgba = cloud_row[index2].rgba;
@@ -449,10 +450,8 @@ void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCl
 
 // }
 
-// void pcl::RealSenseGrabber::processingCloud(struct individualCloud* subCloud) {}
 
-// void pcl::RealSenseGrabber::processingCloud(struct serverROA::individualCloud* subCloud) {
-  void pcl::RealSenseGrabber::processingCloud(struct serverROA::individualCloud* subCloud) {
+void pcl::RealSenseGrabber::processingCloud(struct serverROA::individualCloud* subCloud) {
   //IN this function we will receive a original row and we will:
   // #1 filter it by distante
   // #2 color range
@@ -499,7 +498,7 @@ void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCl
 
 
 
-        // std::cout << "blue ROA " << color << std::endl;
+        std::cout << "blue ROA " << color << std::endl;
 
       }
       else {
@@ -529,38 +528,33 @@ void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCl
 void
 pcl::RealSenseGrabber::run ()//rrrrrrrrr
 {
-  // const int WIDTH = mode_selected_.depth_width;
-  // const int HEIGHT = mode_selected_.depth_height;
 
-// pcl::RealSenseGrabber::individualCloud:: ccc[400];
-
-  // printf("W:%d H:%d\n", WIDTH, HEIGHT );
-  // const int SIZE = WIDTH * HEIGHT;
   static uint64_t timerSendPCD = now_ms();
-//Server
-serverROA* server_TCP_ROA = new serverROA();
-// serverROA server_TCP_ROA;
-//Server Ends  
-
-
-
+  /*--------SERVER DECLARATION OBJs:--------*/
+  serverROA* server_TCP_ROA = new serverROA();
+  /*--------REALSENSE DECLARATION OBJs:--------*/
   PXCProjection* projection = device_->getPXCDevice ().CreateProjection ();
   PXCCapture::Sample sample;
   std::vector<PXCPoint3DF32> vertices (SIZE);
   createDepthBuffer ();
-  std::cout << "Runing" << std::endl;
+
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
+  /*--------SERVER :--------*/
   while (is_running_)
-  { //ddddddddddd
+  {
 
 
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr xyzrgba_cloud;
     pcl::PointCloud<pcl::PointXYZRGBA>::Ptr ROA_Matrix; //Robotic Arm Object
-    // ROA_Matrix.points.resize (WIDTH * HEIGHT);
-
     // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr BODYP_Matrix; //Body pacient Object
     /*send this->*/
+    /*--------OBJECT TO SEND (?filter) :--------*/
     pcl::PointCloud<pcl::PointXYZRGBA> cloudSave ; // <- send this
-
     cloudSave.points.resize (WIDTH * HEIGHT);
 
     // pcl::PointXYZRGBA* ROA_Cloud;
@@ -569,13 +563,11 @@ serverROA* server_TCP_ROA = new serverROA();
     // ROA_Cloud = &xyzrgba_cloud->points[0];
 
     // processingCloud(&ROA_individualCloud[0]);
-    // std::cout << "ROA_individualCloud addres: " << ROA_individualCloud << std::endl;
     // /*ROA*/processingCloud(ROA_individualCloud);
     // /*RBODYP*/processingCloud(BODYP_individualCloud);
 
     pxcStatus status;
     if (need_xyzrgba_) {
-      // status = device_->getPXCDevice ().ReadStreams (PXCCapture::STREAM_TYPE_DEPTH, &sample);
       status = device_->getPXCDevice ().ReadStreams (PXCCapture::STREAM_TYPE_DEPTH | PXCCapture::STREAM_TYPE_COLOR, &sample);
     }
     else
@@ -604,7 +596,7 @@ serverROA* server_TCP_ROA = new serverROA();
        * Steps 1-2 are skipped if temporal filtering is disabled.
        * Step 4 is skipped if there are no subscribers for XYZ clouds.
        * Steps 5-7 are skipped if there are no subscribers for XYZRGBA clouds. */
-
+      /*--------GET IMAGE FROM REALSENSE CAMERA BUFFER :--------*/
       if (temporal_filtering_type_ != RealSense_None)
       {
         PXCImage::ImageData data;
@@ -618,8 +610,6 @@ serverROA* server_TCP_ROA = new serverROA();
         sample.depth->AcquireAccess (PXCImage::ACCESS_WRITE, &data);
         unsigned short* d = reinterpret_cast<unsigned short*> (data.planes[0]);
         for (size_t i = 0; i < SIZE; i++)
-          // d[i] = 251;
-
           d[i] = (*depth_buffer_)[i];
         sample.depth->ReleaseAccess (&data);
       }
@@ -637,57 +627,70 @@ serverROA* server_TCP_ROA = new serverROA();
         xyzrgba_cloud->header.stamp = timestamp;
         xyzrgba_cloud->is_dense = false;
 // xxxxxxxx
-
-        // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud2;
-        // pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud2;
         // update_ROA_cloud(frame_Cloud2, ROA_Cloud2, 0 );
         /*   ok   update_ROA_cloud(&xyzrgba_cloud, &cloudSave, 0 );*/
-
-
-
-        // update_ROA_cloud(xyzrgba_cloud, cloudSave, 0 );
-
-        // update_ROA_cloud(&xyzrgba_cloud->points[0], cloudSave,0);
         // update_BODYP_cloud(xyzrgba_cloud, ROA_Matrix);
 
+        /*--------MIN MAX RANGEE COLORS---call inside filter function-----*/
+        uint32_t minColorValue = (uint32_t)0xFFFFFFFF;
+        uint32_t maxColorValue = (uint32_t)0;
 
-
-        /*This changes the screen code:*/
+        /*--------FILTER BY COLORS IN DISTANCE/DEPTH AND SENDING PACKETS TCP :--------*/
+        /*This changes the screen color:*/
         for (int i = 0; i < HEIGHT; i++)
         {
           PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
-
-          pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];//we are moving the pointer WIDTH points position each loop(i x Points/row)
-          uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)]; // <---------- position of color map and XYZ position
+          pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+          //we are moving the pointer WIDTH points position each loop(i x Points/row)
+          uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
+          // <---------- position of color map and XYZ position
           for (int j = 0; j < WIDTH; j++) {
+            uint32_t index = ( i * WIDTH ) + j;
             convertPoint (vertices_row[j], cloud_row[j]);
             memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
 
-            // pcl::PointXYZRGBA send_row = *color_row;
-
             // update_row_cloud(send_row);///uuuuuuuuuuuuuuu
-           // /*ROA ok*/copyCloud( ROA_individualCloud, cloud_row, ((i * WIDTH) + j), j);
-            /*okkkkk ROA_individualCloud[(i * WIDTH) + j].x = cloud_row[j].x;
-             ROA_individualCloud[(i * WIDTH) + j].y = cloud_row[j].y;
-             ROA_individualCloud[(i * WIDTH) + j].z = cloud_row[j].z;
-             ROA_individualCloud[(i * WIDTH) + j].rgba = cloud_row[j].rgba;
-            */
+            // copyCloud( ROA_individualCloud, cloud_row, index, j);
+
+            /*--------SET COLORS IN FRAME BY DISTANCE LAYERS:--------*/
             uint32_t color = cloud_row[j].rgba;
             uint32_t OriginalColor = color;
-            /**///cloud_row[j].rgba = (uint32_t)2701131775;//white
-
+            /**/cloud_row[j].rgba = (uint32_t)2701131775;//white
             if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
-              /**///cloud_row[j].rgba = (uint32_t)4294902015;//fushia
+              /*Call get_color_ranges here!#*/
+              //uint32_t TargetColor = (uint32_t)4278190335;//blue
+              uint32_t TargetColor = (uint32_t)4279303952;//Green
+              /**/cloud_row[j].rgba = (uint32_t)4294902015;//fushia
+              /*--------FILTER TO UPDATE ROA:--------*/
+              if (filter_ROA(cloud_row[j].rgba)) {
+                cloud_row[j].rgba = TargetColor;
+                // copyCloud( ROA_individualCloud, cloud_row, index, j);
+                // send_cloud_point_pkt(index,  j, server_TCP_ROA, ROA_individualCloud, 1 );//ID 1 == ROA
+                // bool set_cloud_point_pkt(uint32_t index, struct serverROA::individualCloud * subCloud );
+              }
 
-              // ROA_Matrix = xyzrgba_cloud;
+              /*--------FILTER TO UPDATE BODYP:--------*/
+              if (filter_BODYP(cloud_row[j].rgba)) {
+                cloud_row[j].rgba = TargetColor;
+                // copyCloud( ROA_individualCloud, cloud_row, index, j);
+                // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
+                // bool set_cloud_point_pkt(uint32_t index, struct serverROA::individualCloud * subCloud );
+              }
 
+              /*Call get_color_ranges here!#*/
+              /*Call get_color_ranges here!#*/
 
-            }//END if < 0.7
+            }//END 0.7m detection
           }
         }//end Double nested for Array
+        /*--------CLOSE THE FRAME TRANSMISION :--------*/
 
 
-        /*ROA*///processingCloud(ROA_individualCloud);
+
+
+
+        /*Print get_color_ranges here!#*/
+        /*ROA*/processingCloud(ROA_individualCloud);
         mapped->ReleaseAccess (&data);
         mapped->Release ();
       }
@@ -698,13 +701,28 @@ serverROA* server_TCP_ROA = new serverROA();
 
       ////----------------- START SEND over TCP
 
-      ///tttttttttttt
+      /*--------TIMER FOR TCP TRANSMISION: (TODO: implement this on the THREAD class)--------*/
       if (now_ms() - timerSendPCD > 3000) {
         std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
         timerSendPCD = now_ms();
-      /*sssssss*/  server_TCP_ROA->sendIndividualPoint(ROA_individualCloud);
+
+        /*--------SEND ROA UPDATED CLOUD:--------*/
+        send_start_pkt(server_TCP_ROA);
+        send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, 1);//ID 1 == ROA
+        send_end_pkt(server_TCP_ROA);
+
+        /*--------SEND BODYP UPDATED CLOUD:--------*/
+        send_start_pkt(server_TCP_ROA);
+        send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, 2);//ID 2 == BODYP
+        send_end_pkt(server_TCP_ROA);
+
+
+
+
+
+        ///*sssssss*/  server_TCP_ROA->sendIndividualPoint(ROA_individualCloud);
         ///*sssssss*/  server_TCP_ROA->sendIndividualCloud(ROA_individualCloud);
-        printf("ADD1: %p ADD2: %p\n",ROA_individualCloud[1],ROA_individualCloud[2] );
+        printf("ADD1: %p ADD2: %p\n", ROA_individualCloud[1], ROA_individualCloud[2] );
 
 
         // std::cout << "1st: " << &xyzrgba_cloud << std::endl;
@@ -715,15 +733,7 @@ serverROA* server_TCP_ROA = new serverROA();
         // sendPCD(socket, ROA_Matrix);
       }
 
-      // SAVE START
-      // pcl::io::savePCDFileASCII ("test_pcd.pcd", cloudSave);
-      // std::cerr << "Saved " << cloudSave.points.size () << " data points to test_pcd.pcd." << std::endl;
-      // for (size_t k = 0; k < cloudSave.points.size (); ++k)
-      // { std::cerr << "    " << cloudSave.points[k].x << " " << cloudSave.points[k].y << " " << cloudSave.points[k].z << std::endl;}
-
-      // SAVE END
-
-
+      /**///savePCDFileASCII();
       break;
     }
     case PXC_STATUS_DEVICE_LOST:
@@ -737,9 +747,85 @@ serverROA* server_TCP_ROA = new serverROA();
   RealSenseDevice::reset (device_);
 }
 
-float
-pcl::RealSenseGrabber::computeModeScore (const Mode & mode)
+
+
+void pcl::RealSenseGrabber::send_start_pkt(serverROA* server_TCP_ROA) {
+  server_TCP_ROA->send_start_pkt();
+ 
+}
+void pcl::RealSenseGrabber::send_end_pkt(serverROA* server_TCP_ROA) {
+  server_TCP_ROA->send_end_pkt();
+}
+
+void pcl::RealSenseGrabber::send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID){
+
+printf("TEST\n");
+}
+void pcl::RealSenseGrabber::send_cloud_point_pkt(uint32_t index, int j, serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID )
 {
+
+
+  server_TCP_ROA->sendIndividualPoint(SendCloud);
+
+
+
+}
+
+bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
+  /*Call get_color_ranges here!#?*/
+  /*RGB Parameters to filter ROA*/
+  int maxRR = 100, maxGG = 163, maxBB = 175;
+  int minRR = 0, minGG = 63 , minBB = 132;
+  int colorRR = ((color >> 16) & 0x0000FF);
+  int colorGG = ((color >> 8) & 0x0000FF);
+  int colorBB = ((color) & 0x0000FF);
+  if ( (minRR < colorRR  &&  colorRR < maxRR) &&
+       (minGG < colorGG  &&  colorGG < maxGG) &&
+       (minBB < colorBB  &&  colorBB < maxBB) )
+  {return 1;}
+  else {return 0;}
+}
+
+bool pcl::RealSenseGrabber::filter_BODYP(uint32_t color) {
+  /*Call get_color_ranges here!#?*/
+  /*RGB Parameters to filter ROA*/
+  int maxRR = 100, maxGG = 163, maxBB = 175;
+  int minRR = 0, minGG = 63 , minBB = 132;
+  int colorRR = ((color >> 16) & 0x0000FF);
+  int colorGG = ((color >> 8) & 0x0000FF);
+  int colorBB = ((color) & 0x0000FF);
+  if ( (minRR < colorRR  &&  colorRR < maxRR) &&
+       (minGG < colorGG  &&  colorGG < maxGG) &&
+       (minBB < colorBB  &&  colorBB < maxBB) )
+  {return 1;}
+  else {return 0;}
+}
+
+
+
+bool pcl::RealSenseGrabber::get_color_ranges( uint32_t color, uint32_t *minColorValueOut, uint32_t* maxColorValueOut) {
+  uint32_t minColorValue = (uint32_t)0xFFFFFFFF;
+  uint32_t maxColorValue = (uint32_t)0;
+  if (color > 0 && (color < minColorValue)) minColorValue = color;
+  if (color > maxColorValue) maxColorValue = color;
+  if ((minColorValue == (uint32_t)0xFFFFFFFF) && (maxColorValue == 0))
+  {return 0;}
+  else {
+    if (minColorValue != (uint32_t)0xFFFFFFFF) {
+      printf("minColorValue: %u RR:%u GG:%u BB:%u \n", minColorValue, ((minColorValue >> 16) & 0x0000FF), ((minColorValue >> 8) & 0x0000FF), ((minColorValue) & 0x0000FF)  );
+    }
+    if (maxColorValue != 0) {
+      printf("maxColorValue: %u RR:%u GG:%u BB:%u \n", maxColorValue, ((maxColorValue >> 16) & 0x0000FF), ((maxColorValue >> 8) & 0x0000FF), ((maxColorValue) & 0x0000FF)  );
+    }
+    *minColorValueOut = minColorValue;
+    *maxColorValueOut = maxColorValue;
+    return 1;
+  }
+}
+
+
+
+float pcl::RealSenseGrabber::computeModeScore (const Mode & mode) {
   const float FPS_WEIGHT = 100000;
   const float DEPTH_WEIGHT = 1000;
   const float COLOR_WEIGHT = 1;
@@ -757,9 +843,7 @@ pcl::RealSenseGrabber::computeModeScore (const Mode & mode)
   return penalty;
 }
 
-void
-pcl::RealSenseGrabber::selectMode ()
-{
+void pcl::RealSenseGrabber::selectMode () {
   if (mode_requested_ == Mode ())
     mode_requested_ = Mode (30, 640, 480, 640, 480);
   float best_score = (std::numeric_limits<float>::max) ();
@@ -778,9 +862,7 @@ pcl::RealSenseGrabber::selectMode ()
     THROW_IO_EXCEPTION ("PXC device does not support requested mode");
 }
 
-void
-pcl::RealSenseGrabber::createDepthBuffer ()
-{
+void pcl::RealSenseGrabber::createDepthBuffer () {
   size_t size = mode_selected_.depth_width * mode_selected_.depth_height;
   switch (temporal_filtering_type_)
   {

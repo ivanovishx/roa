@@ -190,7 +190,8 @@ private:
 
   // };
 
-
+  #define ROA_PKT = 1;
+  #define BODYP_PKT = 2;
   const int WIDTH = 640;
   const int HEIGHT = 480;
   const uint32_t SIZE = 307200; //640x480 = 307,200
@@ -209,21 +210,28 @@ private:
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
 
-  void  run ();
 
-  void
-  createDepthBuffer ();
+  void run (); 
+  void send_start_pkt(serverROA* server_TCP_ROA);
+  void send_end_pkt(serverROA* server_TCP_ROA);
+  void send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID);
+  void send_cloud_point_pkt(uint32_t index, int j, serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID );
+  bool filter_ROA(uint32_t color);
+  bool filter_BODYP(uint32_t color);
 
-  void
-  selectMode ();
+  /*prints max and min values for color in RR GG BB format  */
+  bool get_color_ranges( uint32_t color, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
+
+  void createDepthBuffer ();
+
+  void selectMode ();
 
   /** Compute a score which indicates how different is a given mode is from
     * the mode requested by the user.
     *
     * Importance of factors: fps > depth resolution > color resolution. The
     * lower the score the better. */
-  float
-  computeModeScore (const Mode& mode);
+  float  computeModeScore (const Mode& mode);
 
   // Signals to indicate whether new clouds are available
   boost::signals2::signal<sig_cb_real_sense_point_cloud>* point_cloud_signal_;

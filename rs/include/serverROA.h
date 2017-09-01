@@ -117,7 +117,9 @@ public:
 	~serverROA();
 	// transmitPacket(cGcsPkt* packet);
 	long now_ms();
-	bool serverROA::sendTCPpack(char* buffer);
+	bool sendTCPpack(char* buffer);
+	bool send_start_pkt();
+	bool send_end_pkt();
 	bool sendIndividualPoint( individualCloud* sendCloud);
 	bool sendIndividualCloud( individualCloud* sendCloud);
 	// uint8_t* receivePacket(pktFormat_t* packet);
