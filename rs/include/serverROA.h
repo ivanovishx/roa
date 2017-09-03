@@ -104,8 +104,8 @@ public:
 		float x = 0;
 		float y = 0;
 		float z = 0;
-		uint32_t rgba = 0xFF00FF44;
-		// uint32_t rgba = 0;
+		// uint32_t rgba = 0xFF00FF44;
+		uint32_t rgba = 0;
 
 	} typeIndividualCloud;
 
@@ -118,9 +118,9 @@ public:
 	// transmitPacket(cGcsPkt* packet);
 	long now_ms();
 	bool sendTCPpack(char* buffer);
-	bool send_start_pkt();
-	bool send_end_pkt();
-	bool sendIndividualPoint( individualCloud* sendCloud);
+	bool send_start_pkt(int ID);
+	bool send_end_pkt(int ID);
+	bool sendIndividualPoint(struct individualCloud* sendCloud, uint32_t index);
 	bool sendIndividualCloud( individualCloud* sendCloud);
 	// uint8_t* receivePacket(pktFormat_t* packet);
 	int initialize_connection(void);

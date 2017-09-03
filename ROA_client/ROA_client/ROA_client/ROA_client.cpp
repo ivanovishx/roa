@@ -39,7 +39,7 @@
 
 typedef struct individualCloud
 {
-	uint32_t index;
+	uint32_t index = 0;
 	float x = 0;
 	float y = 0;
 	float z = 0;
@@ -146,11 +146,13 @@ int main(void)
 			else {
 
 				split_point_packet( bufin,  cloud_spliter, &point_index);
-				 set_point_packet(ROA_individualCloud, cloud_spliter, point_index);
-				 //**/printf("index: %u, color: %u \n", point_index, cloud_spliter.rgba);
+				// set_point_packet(ROA_individualCloud, cloud_spliter, point_index);
+
+
+				//**/printf("index: %u, color: %u \n", point_index, cloud_spliter.rgba);
 
 				// printf("index:%u %f %f %u \n", ROA_individualCloud[300].index, ROA_individualCloud[300].x, ROA_individualCloud[300].y, ROA_individualCloud[300].rgba );
-				 // printf("index:%u %f %f %u \n", ROA_individualCloud[20].index, ROA_individualCloud[20].x, ROA_individualCloud[20].y, ROA_individualCloud[20].rgba );
+				// printf("index:%u %f %f %u \n", ROA_individualCloud[20].index, ROA_individualCloud[20].x, ROA_individualCloud[20].y, ROA_individualCloud[20].rgba );
 			}
 		}
 		// printf("--Value: %s\n", bufin);
@@ -163,23 +165,23 @@ int main(void)
 	return 0;
 }
 
- void set_point_packet(individualCloud* _individualCloud, individualCloud cloud_spliter, uint32_t point_index  ) {
+void set_point_packet(individualCloud* _individualCloud, individualCloud cloud_spliter, uint32_t point_index  ) {
 
- 	_individualCloud[point_index].index = point_index;
- 	_individualCloud[point_index].x =  cloud_spliter.x;
- 	_individualCloud[point_index].y = cloud_spliter.y;
- 	_individualCloud[point_index].z = cloud_spliter.z;
- 	_individualCloud[point_index].rgba = cloud_spliter.rgba;
+	_individualCloud[point_index].index = point_index;
+	_individualCloud[point_index].x =  cloud_spliter.x;
+	_individualCloud[point_index].y = cloud_spliter.y;
+	_individualCloud[point_index].z = cloud_spliter.z;
+	_individualCloud[point_index].rgba = cloud_spliter.rgba;
 
 
- 	/*point_index = (uint32_t)20;
- 	_individualCloud[point_index].index = point_index+1;
- 	_individualCloud[point_index].x =  3;
- 	_individualCloud[point_index].y = 45;
- 	_individualCloud[point_index].z = cloud_spliter.z;
- 	_individualCloud[point_index].rgba = 0xA185FFFF;*/
+	/*point_index = (uint32_t)20;
+	_individualCloud[point_index].index = point_index+1;
+	_individualCloud[point_index].x =  3;
+	_individualCloud[point_index].y = 45;
+	_individualCloud[point_index].z = cloud_spliter.z;
+	_individualCloud[point_index].rgba = 0xA185FFFF;*/
 
- }
+}
 
 
 void split( std::string& s, char c, std::vector<std::string>& v) {
@@ -202,23 +204,32 @@ void split_point_packet(char* bufin, individualCloud cloud_spliter,  uint32_t* p
 
 	string_vector = std::string(bufin);
 
+
+	// printf("Before Vector\n");
 	std::vector<std::string> v;
 	split(string_vector, ',', v);
 
 
-	// printf("myvector stores:%d\n", int(v.size()) );
+	printf("myvector stores:%d\n", int(v.size()) );
 	// cloud_spliter.index = stoul(v[0]);
 	cloud_spliter.index = std::stoul(v[1]);
 	cloud_spliter.x = std::stof(v[2]);
 	cloud_spliter.y = std::stof(v[3]);
 	cloud_spliter.z = std::stof(v[4]);
+	// printf("5\n");
 	cloud_spliter.rgba = std::stoul(v[5]);
-	// printf("index:%u %f %f %u \n", cloud_spliter.index, cloud_spliter.x, cloud_spliter.y, cloud_spliter.rgba );
+	// cloud_spliter.rgba = std::stoul(v[5]);
+	// printf("6\n");
+	printf("index:%u x:%f y:%f z:%f rgba:%u \n", cloud_spliter.index, cloud_spliter.x, cloud_spliter.y, cloud_spliter.z, cloud_spliter.rgba );
 
+
+	// printf("After Vector\n");
 	*point_index = cloud_spliter.index;
 
 
 }
+
+
 
 void writeSocket() {
 

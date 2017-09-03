@@ -46,50 +46,53 @@ bool serverROA::sendTCPpack(char* buffer) {
 }
 
 
-bool serverROA::send_start_pkt() {
-  
+bool serverROA::send_start_pkt(int ID) {
+
   char* buffer = new char[BUFSIZE];
-  /*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  sprintf (buffer, "$START;");
+  ///*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  sprintf (buffer, "$START,%d;", ID);
   return sendTCPpack(buffer);
 }
 
-bool serverROA::send_end_pkt() {
+bool serverROA::send_end_pkt(int ID) {
 
-char* buffer = new char[BUFSIZE];
-  printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  /*optional*/sprintf (buffer, "$END;");
+  char* buffer = new char[BUFSIZE];
+  ///*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  sprintf (buffer, "$END,%d;", ID);
   return sendTCPpack(buffer);
 }
 
-
-bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud) {
-  char* buffer = new char[BUFSIZE]; 
-   // std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
+/*this one ? change name*/
+bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud,  uint32_t index) {
+  char* buffer = new char[BUFSIZE];
+  // std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
   // strcpy(buffer, sendText.c_str());
   // buffer[0] = &sendText;
   // buffer = "sending individualCloud struct";
-  uint32_t index_array = 2000;
-  /**/sprintf (buffer, "$START,ROA;");
-  /**/sprintf (buffer, "$START,BODYP;");
-  /**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  sendTCPpack(buffer);
+  //uint32_t index_array = 2000;
+  ///**/sprintf (buffer, "$START,ROA;");
+  ///**/sprintf (buffer, "$START,BODYP;");
+  // /**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  // sendTCPpack(buffer);
 
-  for (int i = 0; i < SIZE; i++ ) {
-    //ssssssss
-    ///**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)i, (float)11, (float)12, (float)13, sendCloud[i].rgba);
-
-    /**/sprintf (buffer, "$%u,%f,%f,%f,%u;", i, sendCloud[i].x, sendCloud[i].y, sendCloud[i].z, sendCloud[i].rgba);
-    // /**/printf("sending response \"%s\"\n", buffer);
-    if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
-      perror("sendto error?");
-      return 0;
-    }
+  // for (int i = 0; i < max_index_array; i++ ) {
+  //ssssssss
+  printf("serverROA ADD send_cloud_pkt: %p \n", sendCloud  );  
+  /*okish*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)index, (float)11, (float)12, (float)13, (uint32_t)5); //sendCloud[index].rgba);
+  /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
+///**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", *(uint32_t)sendCloud[index].index, *(float)sendCloud[index].x, *(float)sendCloud[index].y, *(float)sendCloud[index].z, *sendCloud[index].rgba);
+  /*ok*/sprintf (buffer, "$,%u,%u,%f,%f,%u;", (uint32_t)sendCloud[index].index, sendCloud[index].x, (float)sendCloud[index].y, (float)sendCloud[index].z, sendCloud[index].rgba);
+  // /**/printf("sending response \"%s\"\n", buffer);
+  /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
+  if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
+    perror("sendto error?");
+    return 0;
   }
+  // }
 
-  /**/sprintf (buffer, "$END;");
-  /**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  sendTCPpack(buffer);
+  ///**/sprintf (buffer, "$END;");
+  ///**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
+  //sendTCPpack(buffer);
 
 
   return 1;
@@ -103,7 +106,7 @@ bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
   // buffer[0] = &sendText;
   // buffer = "sending individualCloud struct";
 
-  printf("sending response \"%s\"\n", buffer);
+  // printf("sending response \"%s\"\n", buffer);
   if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
 
     perror("sendto error?");
