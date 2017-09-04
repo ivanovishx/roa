@@ -77,13 +77,13 @@ bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud,  uint32_t
 
   // for (int i = 0; i < max_index_array; i++ ) {
   //ssssssss
-  printf("serverROA ADD send_cloud_pkt: %p \n", sendCloud  );  
-  /*okish*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)index, (float)11, (float)12, (float)13, (uint32_t)5); //sendCloud[index].rgba);
-  /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
+  // printf("serverROA ADD send_cloud_pkt: %p \n", sendCloud  );  
+  // /*okish*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)index, (float)11, (float)12, (float)13, (uint32_t)5); //sendCloud[index].rgba);
+  // /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
 ///**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", *(uint32_t)sendCloud[index].index, *(float)sendCloud[index].x, *(float)sendCloud[index].y, *(float)sendCloud[index].z, *sendCloud[index].rgba);
-  /*ok*/sprintf (buffer, "$,%u,%u,%f,%f,%u;", (uint32_t)sendCloud[index].index, sendCloud[index].x, (float)sendCloud[index].y, (float)sendCloud[index].z, sendCloud[index].rgba);
+  /*ok*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)sendCloud[index].index, sendCloud[index].x, (float)sendCloud[index].y, (float)sendCloud[index].z, sendCloud[index].rgba);
   // /**/printf("sending response \"%s\"\n", buffer);
-  /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
+  // /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
   if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
     perror("sendto error?");
     return 0;

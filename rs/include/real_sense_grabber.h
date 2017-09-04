@@ -206,7 +206,7 @@ private:
   // /**/void processingCloud(struct serverROA::individualCloud* subCloud);
   /**/void processingCloud(struct serverROA::individualCloud* subCloud);
   /**/void resetCloud( struct serverROA::individualCloud* subCloud);
-  /**/void copyCloud( struct serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize );
+  /**/void copyCloud(  serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize );
   // void  update_row_cloud(pcl::PointXYZRGBA* cloud_row);
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr constloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
   // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
@@ -216,7 +216,7 @@ private:
   void send_start_pkt(serverROA* server_TCP_ROA, int ID);
   void send_end_pkt(serverROA* server_TCP_ROA, int ID);
   void send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, uint32_t index);
-  void send_cloud_point_pkt(uint32_t index, int j, serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID );
+  // void send_cloud_point_pkt(uint32_t index, int j, serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID );
   bool filter_ROA(uint32_t color);
   bool filter_BODYP(uint32_t color);
 
@@ -278,4 +278,3 @@ private:
 }
 
 #endif /* PCL_IO_REAL_SENSE_GRABBER_H */
-

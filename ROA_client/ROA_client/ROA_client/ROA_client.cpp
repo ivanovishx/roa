@@ -210,7 +210,7 @@ void split_point_packet(char* bufin, individualCloud cloud_spliter,  uint32_t* p
 	split(string_vector, ',', v);
 
 
-	printf("myvector stores:%d\n", int(v.size()) );
+	// printf("myvector stores:%d\n", int(v.size()) );
 	// cloud_spliter.index = stoul(v[0]);
 	cloud_spliter.index = std::stoul(v[1]);
 	cloud_spliter.x = std::stof(v[2]);

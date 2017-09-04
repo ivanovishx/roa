@@ -1,1 +1,7 @@
-﻿
+﻿  stdafx.cpp
+  ROA_server.cpp
+c:\users\ivan\documents\tesis\roa\roa_client\roa_client\roa_server\roa_server.cpp(79): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
+c:\users\ivan\documents\tesis\roa\roa_client\roa_client\roa_server\roa_server.cpp(46): warning C4101: 'sendPCD': unreferenced local variable
+  ROA_server.vcxproj -> C:\Users\Ivan\Documents\tesis\roa\ROA_client\ROA_client\Debug\ROA_server.exe
+  ROA_server.vcxproj -> C:\Users\Ivan\Documents\tesis\roa\ROA_client\ROA_client\Debug\ROA_server.pdb (Partial PDB)

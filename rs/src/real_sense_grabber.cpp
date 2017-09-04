@@ -340,15 +340,16 @@ void pcl::RealSenseGrabber:: resetCloud( struct serverROA::individualCloud* subC
   memset (&subCloud, 0, sizeof (subCloud));//reset frame
 }
 
-void pcl::RealSenseGrabber:: copyCloud( struct serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize ) {
+void pcl::RealSenseGrabber:: copyCloud( serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexIF ) {
   /*okkkkk*/
-  ROA_individualCloud[indexSize].index = index1;
-  ROA_individualCloud[index1].x = cloud_row[index2].x;
-  ROA_individualCloud[index1].y = cloud_row[index2].y;
-  ROA_individualCloud[index1].z = cloud_row[index2].z;
-  ROA_individualCloud[index1].rgba = cloud_row[index2].rgba;
-  printf("index:%u %f %f %u \n", ROA_individualCloud[index1].index, ROA_individualCloud[index1].x, ROA_individualCloud[index1].y, ROA_individualCloud[index1].rgba );
-  printf("index:%u %f %f %u \n", ROA_individualCloud[index1].index, cloud_row[index2].x, cloud_row[index2].y, cloud_row[index2].rgba );
+  subCloud[indexIF].index = index1;
+  subCloud[indexIF].x = (float)cloud_row[index2].x;
+  subCloud[indexIF].y = (float)cloud_row[index2].y;
+  subCloud[indexIF].z = (float)cloud_row[index2].z;
+  subCloud[indexIF].rgba = (uint32_t)cloud_row[index2].rgba;
+  // printf("index:%u, indexSAVED:%u X:%f Y:%f Z:%f RGBA:%u \n", indexIF, subCloud[indexIF].index, subCloud[indexIF].x, subCloud[indexIF].y, subCloud[indexIF].z, ROA_individualCloud[indexIF].rgba );
+  // printf("index:%u %f %f %u \n", ROA_individualCloud[index1].index, cloud_row[index2].x, cloud_row[index2].y, cloud_row[index2].rgba );
+
 
 }
 //uuuuuuuuuuuuu
@@ -536,6 +537,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
 {
 
   static uint64_t timerSendPCD = now_ms();
+  uint32_t index;
   /*--------SERVER DECLARATION OBJs:--------*/
   serverROA* server_TCP_ROA = new serverROA();
   /*--------REALSENSE DECLARATION OBJs:--------*/
@@ -654,7 +656,7 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
           uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
           // <---------- position of color map and XYZ position
           for (int j = 0; j < WIDTH; j++) {
-            uint32_t index = ( i * WIDTH ) + j;
+            index = ( i * WIDTH ) + j;
             convertPoint (vertices_row[j], cloud_row[j]);
             memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
 
@@ -669,25 +671,26 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
               /*Call get_color_ranges here!#*/
               uint32_t ROAColor = (uint32_t)4279303952;//Green
               uint32_t BODYPColor = (uint32_t)4278190335;//blue
-              /**/cloud_row[j].rgba = (uint32_t)4294902015;//fushia
+              uint32_t rangeColor = (uint32_t)4294902015;//fushia
 
 
               /*--------FILTER TO UPDATE ROA:--------*/
               if (filter_ROA(color)) {
                 // printf("2ROA\n");
-                cloud_row[j].rgba = ROAColor;
+                cloud_row[j].rgba = OriginalColor;
                 copyCloud( ROA_individualCloud, cloud_row, index, j, indexROA);
                 // send_cloud_point_pkt(index,  j, server_TCP_ROA, ROA_individualCloud, 1 );//ID 1 == ROA
                 indexROA++;
               }
 
               /*--------FILTER TO UPDATE BODYP:--------*/
-              if (filter_BODYP(color)) {
-                cloud_row[j].rgba = BODYPColor;
-                copyCloud( BODYP_individualCloud, cloud_row, index, j, indexBODYP);
-                // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
-                indexBODYP++;
-              }
+              // else if (filter_BODYP(color)) {
+              //   cloud_row[j].rgba = BODYPColor;
+              //   copyCloud( BODYP_individualCloud, cloud_row, index, j, indexBODYP);
+              //   // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
+              //   indexBODYP++;
+              // }
+              else{/**/cloud_row[j].rgba =rangeColor;}
 
               /*Call get_color_ranges here!#*/
               /*Call get_color_ranges here!#*/
@@ -720,11 +723,12 @@ pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
         /*--------SEND ROA UPDATED CLOUD:--------*/
         send_start_pkt(server_TCP_ROA, 1);
-
+//xxxxxxx
         for (int k = 0; k <= indexROA; k++) {
-          printf("i:%d\n", k );
+          // printf("i:%d\n", k );
           send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
-          printf("index:%u %f %f %u \n", ROA_individualCloud[k].index, ROA_individualCloud[k].x, ROA_individualCloud[k].y, ROA_individualCloud[k].rgba );
+          // printf("index:%u, X:%f Y:%f Z:%f RGBA:%u \n", ROA_individualCloud[k].index, ROA_individualCloud[k].x, ROA_individualCloud[k].y, ROA_individualCloud[k].z, ROA_individualCloud[k].rgba );
+          // printf("index:%u %f %f %u \n", ROA_individualCloud[k].index, ROA_individualCloud[k].x, ROA_individualCloud[k].y, ROA_individualCloud[k].rgba );
 
         }
         send_end_pkt(server_TCP_ROA, 1);
@@ -779,8 +783,8 @@ void pcl::RealSenseGrabber::send_end_pkt(serverROA* server_TCP_ROA, int ID) {
 void pcl::RealSenseGrabber::send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, uint32_t index) {
 
 
-  printf("ADD send_cloud_pkt: %p \n", SendCloud  );  
-  printf("send_cloud_pkt index %u\n", index);
+  // printf("ADD send_cloud_pkt: %p \n", SendCloud  );
+  // printf("send_cloud_pkt index %u\n", index);
   server_TCP_ROA->sendIndividualPoint(SendCloud, index);
 
 }
