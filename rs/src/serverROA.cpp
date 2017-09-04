@@ -19,7 +19,6 @@
 #include <windows.h>
 //#include "tasksThread.h"
 
-
 //-------------------------
 // Macros
 //-------------------------
@@ -36,7 +35,6 @@ long serverROA::now_ms() {
 
 //ssssssss
 bool serverROA::sendTCPpack(char* buffer) {
-
   if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
     perror("sendto error?");
     return 0;
@@ -47,97 +45,39 @@ bool serverROA::sendTCPpack(char* buffer) {
 
 
 bool serverROA::send_start_pkt(int ID) {
-
   char* buffer = new char[BUFSIZE];
-  ///*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
   sprintf (buffer, "$START,%d;", ID);
   return sendTCPpack(buffer);
 }
 
 bool serverROA::send_end_pkt(int ID) {
-
   char* buffer = new char[BUFSIZE];
-  ///*optional*/printf("sending msg: , \"%s\", timestamp:%u \n", buffer, now_ms());
   sprintf (buffer, "$END,%d;", ID);
   return sendTCPpack(buffer);
 }
 
-/*this one ? change name*/
 bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud,  uint32_t index) {
   char* buffer = new char[BUFSIZE];
-  // std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
-  // strcpy(buffer, sendText.c_str());
-  // buffer[0] = &sendText;
-  // buffer = "sending individualCloud struct";
-  //uint32_t index_array = 2000;
-  ///**/sprintf (buffer, "$START,ROA;");
-  ///**/sprintf (buffer, "$START,BODYP;");
-  // /**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  // sendTCPpack(buffer);
-
-  // for (int i = 0; i < max_index_array; i++ ) {
-  //ssssssss
-  // printf("serverROA ADD send_cloud_pkt: %p \n", sendCloud  );  
-  // /*okish*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)index, (float)11, (float)12, (float)13, (uint32_t)5); //sendCloud[index].rgba);
-  // /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
-///**/sprintf (buffer, "$,%u,%f,%f,%f,%u;", *(uint32_t)sendCloud[index].index, *(float)sendCloud[index].x, *(float)sendCloud[index].y, *(float)sendCloud[index].z, *sendCloud[index].rgba);
-  /*ok*/sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)sendCloud[index].index, sendCloud[index].x, (float)sendCloud[index].y, (float)sendCloud[index].z, sendCloud[index].rgba);
-  // /**/printf("sending response \"%s\"\n", buffer);
-  // /**/printf("---msgpkt::%s|| timestamp:%u \n", buffer, now_ms());
+  sprintf (buffer, "$,%u,%f,%f,%f,%u;", (uint32_t)sendCloud[index].index, sendCloud[index].x, (float)sendCloud[index].y, (float)sendCloud[index].z, sendCloud[index].rgba);
   if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
     perror("sendto error?");
     return 0;
   }
-  // }
-
-  ///**/sprintf (buffer, "$END;");
-  ///**/printf("sending response: , \"%s\", timestamp:%u \n", buffer, now_ms());
-  //sendTCPpack(buffer);
-
-
   return 1;
 }
-
-
-bool serverROA::sendIndividualCloud(struct individualCloud* sendCloud) {
-  char* buffer = new char[BUFSIZE]; /* receive buffer */
-  std::string sendText = "RGBA is " + std::to_string(sendCloud[2000].rgba);
-  strcpy(buffer, sendText.c_str());
-  // buffer[0] = &sendText;
-  // buffer = "sending individualCloud struct";
-
-  // printf("sending response \"%s\"\n", buffer);
-  if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0) {
-
-    perror("sendto error?");
-    return 0;
-  }
-
-
-  return 1;
-}
-
 
 serverROA::serverROA() {
-
   printf("\nInside serverROA.cpp\n");
   //ScheduleTask* taskHandeler = new ScheduleTask();
-
   initialize_connection();
   listener();
-
-  // while (1) {
-  //   sendIndividualCloud(ROA_individualCloud);
-  //   Sleep(1000);
-  // }
-
 }
 
 void serverROA::listener() {
   /* now loop, receiving data and printing what we received */
   char* buffer = new char[BUFSIZE]; /* receive buffer */
   /* now loop, receiving data and printing what we received */
-  // while (1) {
+
   for (int i = 0; i < 4; i++) {
     printf("waiting on port %d\n", ROA_TX_PORT);
     recvlen = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
@@ -147,18 +87,13 @@ void serverROA::listener() {
     }
     else
       printf("uh oh - something went wrong!\n");
-    // sprintf(buffer, "ack %d", msgcnt++);
     printf("sending response \"%s\"\n", buffer);
     if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
       perror("sendto");
   }
 }
 
-
-
-void* serverROA::main_thread_entry(void* arg)
-{
-
+void* serverROA::main_thread_entry(void* arg) {
   printf("gcs_receiver::main_thread_entry\n ");
   return NULL;
 
@@ -228,15 +163,11 @@ void* serverROA::main_thread_entry(void* arg)
 //   }
 }
 
-int serverROA::get_buffer_occupancy(void)
-{
+int serverROA::get_buffer_occupancy(void) {
   return count;
 }
 
-
-int serverROA::initialize_connection()
-{
-
+int serverROA::initialize_connection() {
   printf("ROA_SERVER::initialize_connection\n");
   //Create a socket
   WSAStartup(MAKEWORD(2, 2), &Data);//just for windows
@@ -245,39 +176,23 @@ int serverROA::initialize_connection()
     return 0;
   }
   memset((char *) &myaddr, 0, sizeof(myaddr));
-  //portno = atoi(s);
   portno = ROA_TX_PORT;
   myaddr.sin_family = AF_INET;
   myaddr.sin_addr.s_addr = INADDR_ANY;
-  // myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
   myaddr.sin_port = htons(portno);
 
   //Bind
-  if ( bind(sockfd , (struct sockaddr *)&myaddr , sizeof(myaddr)) < 0)
-  {
-    printf("Bind failed ") ;
-
-  }
+  if ( bind(sockfd , (struct sockaddr *)&myaddr , sizeof(myaddr)) < 0){printf("Bind failed ");}
   printf("Bind Socket done: listening RAPID clients on port:%d\n", portno);
-  // clilen = sizeof(cli_addr);
-
   printf("initialize done\n");
-
 }
 
-
-serverROA::~serverROA()
-{
+serverROA::~serverROA(){
   WSACleanup(); //call this for destructor
   printf("Server socket closed\n");
   // close(sockfd);
   // pthread_join(thread_id,NULL);
 }
-
-
-
-
-
 // uint8_t* serverROA::receivePacket(pktFormat_t* packet)
 // {
 //   // read

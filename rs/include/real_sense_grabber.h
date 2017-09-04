@@ -181,42 +181,22 @@ public:
 
 private:
 
-  // struct individualCloud
-  // {
-  //   float x = 0;
-  //   float y = 0;
-  //   float z = 0;
-  //   uint32_t rgba = 0;
-
-  // };
 
   #define ROA_PKT = 1;
   #define BODYP_PKT = 2;
   const int WIDTH = 640;
   const int HEIGHT = 480;
   const uint32_t SIZE = 307200; //640x480 = 307,200
-  // struct individualCloud ROA_individualCloud[92000];
-  // server::serverROA::individualCloud* ROA_individualCloud2 = new serverROA::individualCloud[307200];
-  // serverROA::individualCloud* ROA_individualCloud = new serverROA::individualCloud[307200];
   struct serverROA::individualCloud* ROA_individualCloud = new struct serverROA::individualCloud[307200];
   struct serverROA::individualCloud* BODYP_individualCloud = new struct serverROA::individualCloud[307200];
-  /**///individualCloud* ROA_individualCloud = new individualCloud[307200];
-  /**///individualCloud* BODYP_individualCloud = new individualCloud[307200];
-  /**/void  sendPCD();
-  // /**/void processingCloud(struct serverROA::individualCloud* subCloud);
-  /**/void processingCloud(struct serverROA::individualCloud* subCloud);
-  /**/void resetCloud( struct serverROA::individualCloud* subCloud);
-  /**/void copyCloud(  serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize );
-  // void  update_row_cloud(pcl::PointXYZRGBA* cloud_row);
-  // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr constloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
-  // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
-
-
+    
+  void processingCloud(struct serverROA::individualCloud* subCloud);
+  void resetCloud( struct serverROA::individualCloud* subCloud);
+  void copyCloud(  serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize );  
   void run (); 
   void send_start_pkt(serverROA* server_TCP_ROA, int ID);
   void send_end_pkt(serverROA* server_TCP_ROA, int ID);
   void send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, uint32_t index);
-  // void send_cloud_point_pkt(uint32_t index, int j, serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, int ID );
   bool filter_ROA(uint32_t color);
   bool filter_BODYP(uint32_t color);
 

@@ -12,7 +12,6 @@
 
 //#include <tasksThread.h>
 
-// #define WIN32//this is defined by Visual Basic Compiler
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -49,36 +48,23 @@ static char ServerIPPointerHub[15] = "127.0.0.1";
 #define ROA_TX_PORT        2310
 #define ROA_TX_RECEIVER    "localhost"
 
-//#define RECEIVE_THREAD_MAX_COUNT 2
-//#define RECEIVE_THREAD_0 0
-//#define RECEIVE_THREAD_1 1
 #define BUFSIZE 2048
-// #define RECEIVER_QUEUE_SIZE 4
-// namespace server{
 
 
-class serverROA//cGcsReceiver
+class serverROA
 {
 
 private:
 
-	// pktFormat_t rPacketBuf[RECEIVER_QUEUE_SIZE];
-	// void create_header(uint8_t cmd);
 	int   thread_state, sockfd, portno, recvlen, loop, newsockfd;
 	int msgcnt = 0;			/* count # of messages we received */
-	// cGcsPkt* gcspkt;
 	struct  hostent *server;
 	//pthread_t thread_id[RECEIVE_THREAD_MAX_COUNT];
 	// thread thread_id;
 	// pthread_t thread_id;
 	WSADATA Data;
-	//int thread_state[RECEIVE_THREAD_MAX_COUNT];
 	enum eReceiveThreadState {RECEIVE_THREAD_INIT, RECEIVE_THREAD_RUN, RECEIVE_THREAD_EXIT};
-
-	//int sockfd, newsockfd, portno;
 	socklen_t addrlen = sizeof(remaddr);		/* length of addresses */
-	// socklen_t clilen;
-	// uint8_t buffer;//[256];
 	struct sockaddr_in myaddr;	/* our address */
 	struct sockaddr_in remaddr;	/* remote address */
 	struct hostent *hostp; /* client host info */
@@ -104,32 +90,24 @@ public:
 		float x = 0;
 		float y = 0;
 		float z = 0;
-		// uint32_t rgba = 0xFF00FF44;
 		uint32_t rgba = 0;
 
 	} typeIndividualCloud;
 
-	// server::individualCloud* ROA_individualCloud2 = new server::individualCloud[307200];
 	struct individualCloud* ROA_individualCloud = new individualCloud[307200];
 	struct individualCloud* BODYP_individualCloud = new individualCloud[307200];
 
 	serverROA();
 	~serverROA();
-	// transmitPacket(cGcsPkt* packet);
 	long now_ms();
 	bool sendTCPpack(char* buffer);
 	bool send_start_pkt(int ID);
 	bool send_end_pkt(int ID);
 	bool sendIndividualPoint(struct individualCloud* sendCloud, uint32_t index);
-	bool sendIndividualCloud( individualCloud* sendCloud);
-	// uint8_t* receivePacket(pktFormat_t* packet);
 	int initialize_connection(void);
-	//static void* threadEntryPoint(void* p);
 	void listener(void);
 	void* main_thread_entry(void* arg);
 	int get_buffer_occupancy(void);
-	// void write_into_rPacketBuf(pktFormat_t);
-	// pktFormat_t* read_from_rPacketBuf(void);
 
 	static void* threadEntryPoint(void* p)
 	{
@@ -139,9 +117,6 @@ public:
 
 	}
 
-
-
 };
 
-// }//end namespace server::
 #endif //__server_ROA_H__
