@@ -1,0 +1,9 @@
+﻿ROA_server.obj : error LNK2019: unresolved external symbol __imp_bind referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_htonl referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_htons referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_recvfrom referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_sendto referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_socket referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_WSAStartup referenced in function main
+ROA_server.obj : error LNK2019: unresolved external symbol __imp_WSACleanup referenced in function main
+C:\Users\Ivan\Documents\tesis\roa\ROA_client\ROA_client\x64\Debug\ROA_server.exe : fatal error LNK1120: 8 unresolved externals

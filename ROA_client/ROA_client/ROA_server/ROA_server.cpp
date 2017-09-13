@@ -15,20 +15,21 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
+//#ifdef WIN32
 //add ws2_32.lib to linker on VC++
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#else
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#endif // WIN32
+
+//#else
+//#include <unistd.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+//#include <netdb.h>
+//#endif // WIN32
 
 #define SERVICE_PORT	2310
 #define BUFSIZE 2048

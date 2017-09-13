@@ -14,21 +14,27 @@
 #include <vector>
 #include <string>
 #include <stdint.h>
+/*--------PCL LIBRARIES: --------*/
+#include <pcl/visualization/pcl_visualizer.h>
 
-#ifdef WIN32
+
+//#ifdef WIN32
 //add ws2_32.lib to linker on VC++
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#else
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#endif // WIN32
+
+//#else
+//#include <unistd.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+//#include <netdb.h>
+//#endif // WIN32
+
+
 
 #define SERVICE_PORT	2310
 #define BUFLEN 2048
@@ -70,8 +76,9 @@ int main(void){
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	myaddr.sin_port = htons(0);
+	int bind_status = 1;// ::bind(fd, (struct sockaddr *)&myaddr, sizeof(myaddr));
 
-	if (bind(fd, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
+	if (bind_status < 0) {
 		perror("bind failed");
 		return 0;
 	}
