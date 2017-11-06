@@ -125,11 +125,14 @@ void confirmGetSTART();
 void confirmGetEND();
 
 // void rebuildCloud(individualPoint* cloud_client, pcl::PointCloud<pcl::PointXYZ>::ConstPtr* cloud_ROA, int status, uint32_t index);
-void clearCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
+void clearCloud(individualPoint* Matrix_cloud_ptr, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr);
+// void clearCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
 void rebuildCloud(individualPoint cloud_client, pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr, int status, uint32_t index);
-void printAllPointsinCLoud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
-void pushPointsToCloud(individualPoint* );
-//void printAllPointsinCLoud(individualPoint* receivedCloud);
+
+void printAllPointsinCLoud(individualPoint* receivedCloud);
+// void printAllPointsinCLoud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
+void fillArrayCloud(individualPoint cloud_spliter, individualPoint* array_points, int index_numPointsFrame);
+void pushPointsToCloud(individualPoint* cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
 boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud);
 boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
 
@@ -200,7 +203,7 @@ int main(void) {
 				//if (()||(bufin[1] == 'S' && bufin[2] == 'T' && bufin[3] == 'A')) {
 				numPointsFrame = 0;
 				printf("#1-----START!!!\n");
-				clearCloud(&point_cloud_ptr);
+				clearCloud(ROA_cloud, &point_cloud_ptr);
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
 				confirmGetSTART();
@@ -217,17 +220,51 @@ int main(void) {
 				lastIndexPointFrame = 0;
 				confirmGetEND();
 				// TODO: xxxx
-				printAllPointsinCLoud(&point_cloud_ptr);
+				printAllPointsinCLoud(ROA_cloud);
+				// printAllPointsinCLoud(&point_cloud_ptr);
 				//printAllPointsinCLoud(&cloud_spliter);
 
+
+				// pushPointsToCloud(ROA_cloud, &point_cloud_ptr);
+
+////////////////
+				pcl::PointXYZRGB point;
+				int j = 0;
+				for (int i = 0; i < 307200; i++ ) {
+
+					if (i == ROA_cloud[j].index) {
+						// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
+						// if (sumRow != 0) {
+						point.x = ROA_cloud[j].x;
+						// point.x = cloud_client.x;
+						point.y = ROA_cloud[j].y;
+						point.z = ROA_cloud[j].z;
+						point.rgb = ROA_cloud[j].rgba;
+						j++;
+						// }
+
+					}
+					else {
+						point.x = 0;
+						point.y = 0;
+						point.z = 0;
+						point.rgb = 0;
+
+					}
+
+
+					point_cloud_ptr->points.push_back (point);
+
+				}
+
+////////////////
 				//call visualizer:
-				// viewer = rgbVis(point_cloud_ptr);
+				//viewer = rgbVis(point_cloud_ptr);
 
 
-				// simpleVis(cloud_ROA);
+
 			}
 			else {
-				numPointsFrame++;
 				struct individualPoint cloud_spliter2;
 				// lastIndexPointFrame = cloud_spliter.index;
 
@@ -235,8 +272,12 @@ int main(void) {
 
 				// printf("-->index2:%u x:%f y:%f z:%f rgba:%u \n", cloud_spliter.index, cloud_spliter.x, cloud_spliter.y, cloud_spliter.z, cloud_spliter.rgba);
 				//#1 Cloud data-outputs, #2 Cloud outputs to visualizer, #3 index output to write #2.1 decision but eliminate this
-				
-				rebuildCloud( cloud_spliter,  &ROA_cloud, 1, point_index);
+
+
+				fillArrayCloud(cloud_spliter, ROA_cloud, numPointsFrame);
+				// void fillArrayCloud(individualPoint* cloud_spliter, individualPoint* array_points, int index_numPointsFrame);
+				numPointsFrame++;
+				// rebuildCloud( cloud_spliter,  &ROA_cloud, 1, point_index);
 				// rebuildCloud( cloud_spliter,  &point_cloud_ptr, 1, point_index);
 
 				// printf("numPointsFrame:%d, lastIndexPointFrame:%d, actualIndexPointFrame:%u,\n", numPointsFrame, lastIndexPointFrame, actualIndexPointFrame );
@@ -342,7 +383,8 @@ void confirmGetEND() {
 }
 
 /*--------CREATE CLOUD:-------*/
-void clearCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr) {
+void clearCloud(individualPoint* Matrix_cloud_ptr, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr) {
+	memset(Matrix_cloud_ptr, 0, sizeof(Matrix_cloud_ptr));
 	memset(&point_cloud_ptr, 0, sizeof(point_cloud_ptr));
 	printf("---------- ClearCloud DONE after START;\n");
 }
@@ -376,41 +418,63 @@ void rebuildCloud(individualPoint cloud_client, individualPoint* _cloud, int sta
 
 // (pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr)
 
-void printAllPointsinCLoud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr)
-// void printAllPointsinCLoud(individualPoint * receivedCloud)
+
+// void printAllPointsinCLoud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr)
+void printAllPointsinCLoud(individualPoint * receivedCloud)
 {
 	printf("-----------------PRINTING REBUILD STARTS-------------------------\n");
 	// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
-	for (int i = 0; i < 307200; i++ ) {
+	for (int i = 0; i < 500; i++ ) {
+		// for (int i = 0; i < 307200; i++ ) {
 //		if(sumRow>0)
+		printf("-->i:%d index:%u x:%f y:%f z:%f rgba:%u \n", i, receivedCloud[i].index, receivedCloud[i].x, receivedCloud[i].y, receivedCloud[i].z, receivedCloud[i].rgba);
 		// printf("-->i:%d index:%u x:%f y:%f z:%f rgba:%u \n", i, point_cloud_ptr[i].index, point_cloud_ptr[i].x, point_cloud_ptr[i].y, point_cloud_ptr[i].z, point_cloud_ptr[i].rgba);
-
 
 	}
 	printf("----------------- PRINTING REBUILD ENDS-------------------------\n");
 }
 
-void pushPointsToCloud(individualPoint cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr) {
 
+void fillArrayCloud(individualPoint cloud_spliter, individualPoint* array_points, int index_numPointsFrame) {
+
+
+	array_points[index_numPointsFrame].index = cloud_spliter.index;
+	array_points[index_numPointsFrame].x = cloud_spliter.x;
+	array_points[index_numPointsFrame].y = cloud_spliter.y;
+	array_points[index_numPointsFrame].z = cloud_spliter.z;
+	array_points[index_numPointsFrame].rgba = cloud_spliter.rgba;
+
+
+}
+
+void pushPointsToCloud(individualPoint* cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr) {
+	//#1 input_matrix #2 Final output to Viewer
 	pcl::PointXYZRGB point;
+	int j = 0;
 	for (int i = 0; i < 307200; i++ ) {
 
-		float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
+		if (i == cloud_client[j].index) {
+			// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
+			// if (sumRow != 0) {
+			point.x = cloud_client[j].x;
+			// point.x = cloud_client.x;
+			point.y = cloud_client[j].y;
+			point.z = cloud_client[j].z;
+			point.rgb = cloud_client[j].rgba;
+			j++;
+			// }
 
-		if (sumRow != 0) {
-			point.x = basic_point.x;
-			point.y = basic_point.y;
-			point.z = basic_point.z;
-			point.rgb = basic_point.z;
-			point_cloud_ptr->points.push_back (point);
 		}
 		else {
 			point.x = 0;
 			point.y = 0;
 			point.z = 0;
 			point.rgb = 0;
-			point_cloud_ptr->points.push_back (point);
+
 		}
+
+		// point_cloud_ptr->points.push_back (point);
+		// *point_cloud_ptr->points.push_back (point);
 
 	}
 }
