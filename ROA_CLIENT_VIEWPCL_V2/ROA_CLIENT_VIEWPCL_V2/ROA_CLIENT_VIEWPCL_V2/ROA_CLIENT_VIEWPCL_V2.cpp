@@ -107,6 +107,7 @@ typedef struct individualPoint {
 
 struct sockaddr_in myaddr, remaddr;
 int fd, i, slen = sizeof(remaddr);
+int callViewer1time = 0;
 int numPointsFrame = 0;
 int lastIndexPointFrame = 0;
 int actualIndexPointFrame = 0;
@@ -214,7 +215,6 @@ int main(void) {
 			else if ( (bufin[1] == 'E' && bufin[2] == 'N' && bufin[3] == 'D')) {
 				printf("#2-----Number of Points on Cloud Frame:%d \n", numPointsFrame);
 				printf("#3-----END!!!\n");
-				numPointsFrame = 0;
 
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
@@ -235,10 +235,10 @@ int main(void) {
 					if (i == ROA_cloud[j].index) {
 						// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
 						// if (sumRow != 0) {
-						point.x = ROA_cloud[j].x;
+						point.x = ROA_cloud[j].x  * 10;
 						// point.x = cloud_client.x;
-						point.y = ROA_cloud[j].y;
-						point.z = ROA_cloud[j].z;
+						point.y = ROA_cloud[j].y  * 10;
+						point.z = ROA_cloud[j].z  * 10;
 						point.rgb = ROA_cloud[j].rgba;
 						j++;
 						// }
@@ -257,11 +257,33 @@ int main(void) {
 
 				}
 
+
+
 ////////////////
 				//call visualizer:
-				//viewer = rgbVis(point_cloud_ptr);
+
+				if (numPointsFrame > 500 && callViewer1time == 0) {
+					callViewer1time = 1;
+					viewer = rgbVis(point_cloud_ptr);
+					// }
+					// else {
+
+					while (!viewer->wasStopped ())
+					{
+						viewer->spinOnce (100);
+						boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+					}
+				}
+
+				// TODO: implement another thread ot nonblocking method
+				// if (!viewer->wasStopped ())
+				// {
+				// 	viewer->spinOnce (100);
+				// 	boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+				// }
 
 
+				numPointsFrame = 0;
 
 			}
 			else {
