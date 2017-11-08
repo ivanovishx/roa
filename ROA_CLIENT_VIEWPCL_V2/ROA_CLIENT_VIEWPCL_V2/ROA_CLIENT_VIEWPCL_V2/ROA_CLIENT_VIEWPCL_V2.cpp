@@ -123,6 +123,7 @@ void split_point_packet(char* bufin, individualPoint*  cloud_spliter, uint32_t* 
 void writeSocket();
 char* readSocket();
 void confirmGetSTART();
+void confirmGetPOINT(int point_index);
 void confirmGetEND();
 
 // void rebuildCloud(individualPoint* cloud_client, pcl::PointCloud<pcl::PointXYZ>::ConstPtr* cloud_ROA, int status, uint32_t index);
@@ -219,8 +220,8 @@ int main(void) {
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
 				confirmGetEND();
+				//printAllPointsinCLoud(ROA_cloud);
 				// TODO: xxxx
-				printAllPointsinCLoud(ROA_cloud);
 				// printAllPointsinCLoud(&point_cloud_ptr);
 				//printAllPointsinCLoud(&cloud_spliter);
 
@@ -235,10 +236,10 @@ int main(void) {
 					if (i == ROA_cloud[j].index) {
 						// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
 						// if (sumRow != 0) {
-						point.x = ROA_cloud[j].x  * 10;
+						point.x = ROA_cloud[j].x ;
 						// point.x = cloud_client.x;
-						point.y = ROA_cloud[j].y  * 10;
-						point.z = ROA_cloud[j].z  * 10;
+						point.y = ROA_cloud[j].y ;
+						point.z = ROA_cloud[j].z ;
 						point.rgb = ROA_cloud[j].rgba;
 						j++;
 						// }
@@ -265,22 +266,20 @@ int main(void) {
 				if (numPointsFrame > 500 && callViewer1time == 0) {
 					callViewer1time = 1;
 					viewer = rgbVis(point_cloud_ptr);
+					// while (!viewer->wasStopped ())
+					// {
+					// 	viewer->spinOnce (100);
+					// 	boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 					// }
-					// else {
-
-					while (!viewer->wasStopped ())
-					{
-						viewer->spinOnce (100);
-						boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-					}
 				}
 
 				// TODO: implement another thread ot nonblocking method
-				// if (!viewer->wasStopped ())
-				// {
-				// 	viewer->spinOnce (100);
-				// 	boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-				// }
+				if (!viewer->wasStopped ())
+				{
+					viewer->spinOnce (100);
+					boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+				}
+
 
 
 				numPointsFrame = 0;
@@ -295,7 +294,9 @@ int main(void) {
 				// printf("-->index2:%u x:%f y:%f z:%f rgba:%u \n", cloud_spliter.index, cloud_spliter.x, cloud_spliter.y, cloud_spliter.z, cloud_spliter.rgba);
 				//#1 Cloud data-outputs, #2 Cloud outputs to visualizer, #3 index output to write #2.1 decision but eliminate this
 
+				//printf("---point_index:%u\n", point_index);
 
+				//confirmGetPOINT((int)point_index);
 				fillArrayCloud(cloud_spliter, ROA_cloud, numPointsFrame);
 				// void fillArrayCloud(individualPoint* cloud_spliter, individualPoint* array_points, int index_numPointsFrame);
 				numPointsFrame++;
@@ -394,6 +395,16 @@ void confirmGetSTART() {
 		exit(1);
 	}
 }
+
+void confirmGetPOINT(int point_index) {
+	//printf("Sending POINT confirmation to ROA Server %u to %s port %d\n", point_index, server, SERVICE_PORT);
+	sprintf(buf, "%d", point_index);
+	if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1) {
+		perror("sendto");
+		exit(1);
+	}
+}
+
 void confirmGetEND() {
 	i = 9;
 	printf("Sending END confirmation to ROA Server %d to %s port %d\n", i, server, SERVICE_PORT);
