@@ -147,6 +147,7 @@ int main(void) {
 	// struct individualPoint* ROA_individualPoint = new struct individualPoint[307200];
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr basic_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr reset_point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
 	point_cloud_ptr->width = (int)307200;
 	point_cloud_ptr->height = 1;
 	pcl::PointXYZ basic_point;
@@ -230,17 +231,25 @@ int main(void) {
 
 ////////////////
 				pcl::PointXYZRGB point;
+				// int k = 0;
+				// while (1) {
 				int j = 0;
+
 				for (int i = 0; i < 307200; i++ ) {
 
 					if (i == ROA_cloud[j].index) {
 						// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
 						// if (sumRow != 0) {
-						point.x = ROA_cloud[j].x ;
-						// point.x = cloud_client.x;
-						point.y = ROA_cloud[j].y ;
-						point.z = ROA_cloud[j].z ;
-						point.rgb = ROA_cloud[j].rgba;
+
+						point.x = ROA_cloud[j].x  ;
+						point.y = ROA_cloud[j].y  ;
+						point.z = ROA_cloud[j].z  ;
+
+						// point.x = ROA_cloud[j].x + k ;
+						// point.y = ROA_cloud[j].y + k ;
+						// point.z = ROA_cloud[j].z + k ;
+						point.rgb = (uint32_t)4294902015;//fushia
+						// point.rgb = ROA_cloud[j].rgba;
 						j++;
 						// }
 
@@ -263,15 +272,19 @@ int main(void) {
 ////////////////
 				//call visualizer:
 
+
+
 				if (numPointsFrame > 500 && callViewer1time == 0) {
 					callViewer1time = 1;
 					viewer = rgbVis(point_cloud_ptr);
-					while (!viewer->wasStopped ())
+					// viewer->addPointCloud (point_cloud_ptr, "cloud");
+
+					/*while (!viewer->wasStopped ())
 					{
 						viewer->spinOnce (100);
 						boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 						point_cloud_ptr.reset ();
-					}
+					}*/
 				}
 
 				// TODO: implement another thread ot nonblocking method
@@ -284,27 +297,42 @@ int main(void) {
 					if (point_cloud_ptr)
 					{
 						// boost::mutex::scoped_lock lock (new_cloud_mutex_);
-						if (!viewer->updatePointCloud (point_cloud_ptr, "cloud"))
-						{
-							//	viewer->addPointCloud (point_cloud_ptr, "cloud");
-							//	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
-						}
+						// if (!viewer->updatePointCloud (point_cloud_ptr, "cloud"))
+						// {
+						// viewer->addPointCloud (point_cloud_ptr, "cloud");
+						//	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
+						// }
 						//// displaySettings ();
 						//// last_cloud_ = point_cloud_ptr;
 						//point_cloud_ptr.reset ();
 					}
-					viewer->updatePointCloud (point_cloud_ptr, "cloud");
+
 					viewer->addPointCloud (point_cloud_ptr, "cloud");
-					viewer->spinOnce (1, true);
-					// viewer->spinOnce (100);
-					boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+					viewer->updatePointCloud (point_cloud_ptr, "cloud");
+
+					for (int m = 0; m < 20; m++) {
+
+						viewer->spinOnce (1, true);
+						// viewer->spinOnce (100);
+						boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+					}
 				}
 
 
+				viewer->removeAllPointClouds(0);
+				// viewer->removePointCloud("cloud", 1);
 
+
+				// viewer->reset (new pcl::visualization::PCLVisualizer ("viewer", false));
+				// point_cloud_ptr.reset (new PointCloud);
+				point_cloud_ptr = reset_point_cloud_ptr;
+
+				                  // k = k + 0.4;
+				                  // k++;
+				// point_cloud_ptr->reset();
 				numPointsFrame = 0;
-
-			}
+				// }//while(1 end)
+			}//END msg
 			else {
 				struct individualPoint cloud_spliter2;
 				// lastIndexPointFrame = cloud_spliter.index;
@@ -436,12 +464,12 @@ void confirmGetEND() {
 }
 
 /*--------CREATE CLOUD:-------*/
-void clearCloud(individualPoint* Matrix_cloud_ptr, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr) {
+void clearCloud(individualPoint * Matrix_cloud_ptr, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr) {
 	memset(Matrix_cloud_ptr, 0, sizeof(Matrix_cloud_ptr));
 	memset(&point_cloud_ptr, 0, sizeof(point_cloud_ptr));
 	printf("---------- ClearCloud DONE after START;\n");
 }
-void rebuildCloud(individualPoint cloud_client, individualPoint* _cloud, int status, uint32_t index) {
+void rebuildCloud(individualPoint cloud_client, individualPoint * _cloud, int status, uint32_t index) {
 // void rebuildCloud(individualPoint cloud_client, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr, int status, uint32_t index) {
 	/*xxxx here*///#1 Cloud data-outputs, #2 Cloud outputs to visualizer, #3 index output to write #2.1 decision but eliminate this
 	//int index=0;
@@ -488,7 +516,7 @@ void printAllPointsinCLoud(individualPoint * receivedCloud)
 }
 
 
-void fillArrayCloud(individualPoint cloud_spliter, individualPoint* array_points, int index_numPointsFrame) {
+void fillArrayCloud(individualPoint cloud_spliter, individualPoint * array_points, int index_numPointsFrame) {
 
 
 	array_points[index_numPointsFrame].index = cloud_spliter.index;
@@ -500,7 +528,7 @@ void fillArrayCloud(individualPoint cloud_spliter, individualPoint* array_points
 
 }
 
-void pushPointsToCloud(individualPoint* cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr) {
+void pushPointsToCloud(individualPoint * cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr) {
 	//#1 input_matrix #2 Final output to Viewer
 	pcl::PointXYZRGB point;
 	int j = 0;
