@@ -266,17 +266,37 @@ int main(void) {
 				if (numPointsFrame > 500 && callViewer1time == 0) {
 					callViewer1time = 1;
 					viewer = rgbVis(point_cloud_ptr);
-					// while (!viewer->wasStopped ())
-					// {
-					// 	viewer->spinOnce (100);
-					// 	boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-					// }
+					while (!viewer->wasStopped ())
+					{
+						viewer->spinOnce (100);
+						boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+						point_cloud_ptr.reset ();
+					}
 				}
 
 				// TODO: implement another thread ot nonblocking method
 				if (!viewer->wasStopped ())
 				{
-					viewer->spinOnce (100);
+					// viewer->spinOnce (100);
+					// boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+					////////////////////-------------old ok/////////////
+					/////coming from real_sense_viewer.cpp
+					if (point_cloud_ptr)
+					{
+						// boost::mutex::scoped_lock lock (new_cloud_mutex_);
+						if (!viewer->updatePointCloud (point_cloud_ptr, "cloud"))
+						{
+							//	viewer->addPointCloud (point_cloud_ptr, "cloud");
+							//	viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
+						}
+						//// displaySettings ();
+						//// last_cloud_ = point_cloud_ptr;
+						//point_cloud_ptr.reset ();
+					}
+					viewer->updatePointCloud (point_cloud_ptr, "cloud");
+					viewer->addPointCloud (point_cloud_ptr, "cloud");
+					viewer->spinOnce (1, true);
+					// viewer->spinOnce (100);
 					boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 				}
 
@@ -540,5 +560,12 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl:
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
 	viewer->addCoordinateSystem(1.0);
 	viewer->initCameraParameters();
+	////////////new
+	viewer->setCameraFieldOfView (1.785398); // approximately 45 degrees
+	viewer->setCameraPosition (0, 0.1, 0.3, 0, 0, 1, 0, 1, 0);
+	// viewer->setCameraPosition (0, 0, 0, 0, 0, 1, 0, 1, 0);
+	// viewer->registerKeyboardCallback (&RealSenseViewer::keyboardCallback, *this);
+	// viewer->registerPointPickingCallback (&RealSenseViewer::pointPickingCallback, *this);
+
 	return (viewer);
 }
