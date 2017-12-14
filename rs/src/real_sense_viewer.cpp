@@ -128,10 +128,10 @@ class RealSenseViewer
   public:
 
     typedef pcl::PointCloud<PointT> PointCloudT;
-
+    /*--------PLOTTER--------*/
     RealSenseViewer (pcl::RealSenseGrabber& grabber)
     : grabber_ (grabber)
-    , viewer_ ("Tesis for Ivan Lozano")
+    , viewer_ ("Thesis - By Ivan Lozano")
     , window_ (3)
     , threshold_ (6)
     , temporal_filtering_ (pcl::RealSenseGrabber::RealSense_None)
@@ -179,8 +179,7 @@ class RealSenseViewer
 
   private:
 
-    void
-    cloudCallback (typename PointCloudT::ConstPtr cloud)
+    void cloudCallback (typename PointCloudT::ConstPtr cloud)
     {
       if (!viewer_.wasStopped ())
       {
@@ -199,8 +198,7 @@ class RealSenseViewer
       }
     }
 
-    void
-    keyboardCallback (const pcl::visualization::KeyboardEvent& event, void*)
+    void keyboardCallback (const pcl::visualization::KeyboardEvent& event, void*)
     {
       if (event.keyDown ())
       {
@@ -289,8 +287,7 @@ class RealSenseViewer
       }
     }
 
-    void
-    pointPickingCallback (const pcl::visualization::PointPickingEvent& event, void*)
+    void pointPickingCallback (const pcl::visualization::PointPickingEvent& event, void*)
     {
       float x, y, z;
       event.getPoint (x, y, z);
@@ -300,8 +297,7 @@ class RealSenseViewer
       pcl::console::print_value ("%.3f\n", z);
     }
 
-    void
-    displaySettings ()
+    void displaySettings ()
     {
       const int dx = 5;
       const int dy = 14;
@@ -328,8 +324,7 @@ class RealSenseViewer
       }
     }
 
-    void
-    printMode (const pcl::RealSenseGrabber::Mode& mode)
+    void printMode (const pcl::RealSenseGrabber::Mode& mode)
     {
       print_info ("Capturing mode: ");
       print_value ("%i", mode.fps);
