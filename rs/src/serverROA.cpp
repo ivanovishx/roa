@@ -47,13 +47,62 @@ bool serverROA::sendTCPpack(char* buffer) {
 bool serverROA::send_start_pkt(int ID) {
   char* buffer = new char[BUFSIZE];
   sprintf (buffer, "$START,%d;", ID);
+  printf("Sending message: \"%s\"\n", buffer);
   return sendTCPpack(buffer);
 }
 
 bool serverROA::send_end_pkt(int ID) {
   char* buffer = new char[BUFSIZE];
   sprintf (buffer, "$END,%d;", ID);
+  printf("Sending message: \"%s\"\n", buffer);
   return sendTCPpack(buffer);
+}
+
+bool serverROA::get_start_confirmation() {
+  char* buffer = new char[BUFSIZE];
+  recvlen = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
+  if (recvlen > 0) {
+    buffer[recvlen] = 0;
+    printf("received message: \"%s\" (%d bytes)\n", buffer, recvlen);
+    if (buffer[0] == '$' && buffer[1] == 's' && buffer[2] == 't' && buffer[3] == 'a') {
+      return 0;
+    }
+    else {
+      return 1;//"do while" will keep calling this function until is negative
+    }
+  }
+}
+
+bool serverROA::get_end_confirmation() {
+  char* buffer = new char[BUFSIZE];
+  recvlen = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
+  if (recvlen > 0) {
+    buffer[recvlen] = 0;
+    printf("received message: \"%s\" (%d bytes)\n", buffer, recvlen);
+    if (buffer[0] == '$' && buffer[1] == 'e' && buffer[2] == 'n' && buffer[3] == 'd') {
+      return 0;
+    }
+    else {
+      return 1;//"do while" will keep calling this function until is negative
+    }
+  }
+}
+
+bool serverROA::get_point_confirmation(int index_comp) {
+  char* buffer = new char[BUFSIZE];
+  recvlen = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
+  if (recvlen > 0) {
+    buffer[recvlen] = 0;
+    // printf("---Confirmation Point: \"%s\" (%d bytes)\n", buffer, recvlen);
+    // printf("Comparing: %d ::AND:: %d\n", std::atoi(buffer), index_comp);
+    if (std::atoi(buffer) == index_comp) {
+      // if(0){
+      return 0;
+    }
+    else {
+      return 1;//"do while" will keep calling this function until is negative
+    }
+  }
 }
 
 bool serverROA::sendIndividualPoint(struct individualCloud* sendCloud,  uint32_t index) {
@@ -182,12 +231,12 @@ int serverROA::initialize_connection() {
   myaddr.sin_port = htons(portno);
 
   //Bind
-  if ( bind(sockfd , (struct sockaddr *)&myaddr , sizeof(myaddr)) < 0){printf("Bind failed ");}
+  if ( bind(sockfd , (struct sockaddr *)&myaddr , sizeof(myaddr)) < 0) {printf("Bind failed ");}
   printf("Bind Socket done: listening RAPID clients on port:%d\n", portno);
   printf("initialize done\n");
 }
 
-serverROA::~serverROA(){
+serverROA::~serverROA() {
   WSACleanup(); //call this for destructor
   printf("Server socket closed\n");
   // close(sockfd);
