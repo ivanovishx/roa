@@ -103,6 +103,9 @@ public:
 	bool sendTCPpack(char* buffer);
 	bool send_start_pkt(int ID);
 	bool send_end_pkt(int ID);
+	bool get_start_confirmation();
+	bool get_point_confirmation(int index_comp);
+	bool get_end_confirmation();
 	bool sendIndividualPoint(struct individualCloud* sendCloud, uint32_t index);
 	int initialize_connection(void);
 	void listener(void);
