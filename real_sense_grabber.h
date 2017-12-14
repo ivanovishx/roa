@@ -1,40 +1,3 @@
-/*
- * Software License Agreement (BSD License)
- *
- *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2015-, Open Perception, Inc.
- *
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of the copyright holder(s) nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *
- */
-
 #ifndef PCL_IO_REAL_SENSE_GRABBER_H
 #define PCL_IO_REAL_SENSE_GRABBER_H
 
@@ -46,6 +9,7 @@
 #include <pcl/io/grabber.h>
 
 #include "real_sense/time.h"
+#include "serverROA.h"
 
 namespace pcl
 {
@@ -217,45 +181,38 @@ public:
 
 private:
 
-  struct individualCloud
-  {
-    float x = 0;
-    float y = 0;
-    float z = 0;
-    uint32_t rgba = 0;
 
-  };
-
-
+  #define ROA_PKT = 1;
+  #define BODYP_PKT = 2;
   const int WIDTH = 640;
   const int HEIGHT = 480;
   const uint32_t SIZE = 307200; //640x480 = 307,200
-  // struct individualCloud ROA_individualCloud[92000];
-  struct individualCloud* ROA_individualCloud = new individualCloud[307200];
-  struct individualCloud* BODYP_individualCloud = new individualCloud[307200];
+  struct serverROA::individualCloud* ROA_individualCloud = new struct serverROA::individualCloud[307200];
+  struct serverROA::individualCloud* BODYP_individualCloud = new struct serverROA::individualCloud[307200];
+    
+  void processingCloud(struct serverROA::individualCloud* subCloud);
+  void resetCloud( struct serverROA::individualCloud* subCloud);
+  void copyCloud(  serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexSize );  
+  void run (); 
+  void send_start_pkt(serverROA* server_TCP_ROA, int ID);
+  void send_end_pkt(serverROA* server_TCP_ROA, int ID);
+  void send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, uint32_t index);
+  bool filter_ROA(uint32_t color);
+  bool filter_BODYP(uint32_t color);
 
-  /**/void  sendPCD();
-  /**/void processingCloud(struct individualCloud* subCloud);
-  /**/void copyCloud( struct individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2 );
-  // void  update_row_cloud(pcl::PointXYZRGBA* cloud_row);
-  // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloudFinal, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
-  // void  update_ROA_cloud(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* frame_Cloud, pcl::PointCloud<pcl::PointXYZRGBA>* ROA_Cloud, int clearVar);
+  /*prints max and min values for color in RR GG BB format  */
+  bool get_color_ranges( uint32_t color, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
 
-  void  run ();
+  void createDepthBuffer ();
 
-  void
-  createDepthBuffer ();
-
-  void
-  selectMode ();
+  void selectMode ();
 
   /** Compute a score which indicates how different is a given mode is from
     * the mode requested by the user.
     *
     * Importance of factors: fps > depth resolution > color resolution. The
     * lower the score the better. */
-  float
-  computeModeScore (const Mode& mode);
+  float  computeModeScore (const Mode& mode);
 
   // Signals to indicate whether new clouds are available
   boost::signals2::signal<sig_cb_real_sense_point_cloud>* point_cloud_signal_;
@@ -301,4 +258,3 @@ private:
 }
 
 #endif /* PCL_IO_REAL_SENSE_GRABBER_H */
-
