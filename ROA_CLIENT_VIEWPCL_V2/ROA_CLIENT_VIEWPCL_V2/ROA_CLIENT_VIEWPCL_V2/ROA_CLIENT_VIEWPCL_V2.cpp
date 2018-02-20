@@ -106,6 +106,7 @@ typedef struct individualPoint {
 } typeindividualPoint;
 
 struct sockaddr_in myaddr, remaddr;
+int object_id = -1;
 int fd, i, slen = sizeof(remaddr);
 int callViewer1time = 0;
 int numPointsFrame = 0;
@@ -125,6 +126,7 @@ char* readSocket();
 void confirmGetSTART();
 void confirmGetPOINT(int point_index);
 void confirmGetEND();
+int getID(char* bufin);
 
 // void rebuildCloud(individualPoint* cloud_client, pcl::PointCloud<pcl::PointXYZ>::ConstPtr* cloud_ROA, int status, uint32_t index);
 void clearCloud(individualPoint* Matrix_cloud_ptr, pcl::PointCloud<pcl::PointXYZRGB>::Ptr * point_cloud_ptr);
@@ -206,10 +208,18 @@ int main(void) {
 				//if (()||(bufin[1] == 'S' && bufin[2] == 'T' && bufin[3] == 'A')) {
 				numPointsFrame = 0;
 				printf("#1-----START!!!\n");
-				clearCloud(ROA_cloud, &point_cloud_ptr);
+				
+				if (object_id = 2){
+				point_cloud_ptr->points.clear();					
+				}
+
+				//clearCloud(ROA_cloud, &point_cloud_ptr);
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
+				object_id = getID(bufin);
+				/*HERE xxxxx*/ 
 				confirmGetSTART();
+				
 
 
 			}
@@ -230,6 +240,11 @@ int main(void) {
 				// pushPointsToCloud(ROA_cloud, &point_cloud_ptr);
 
 ////////////////
+				/*
+				if (object_id = 1){
+				point_cloud_ptr->points.clear();					
+				}
+				/**/
 				pcl::PointXYZRGB point;
 				// int k = 0;
 				// while (1) {
@@ -248,7 +263,17 @@ int main(void) {
 						// point.x = ROA_cloud[j].x + k ;
 						// point.y = ROA_cloud[j].y + k ;
 						// point.z = ROA_cloud[j].z + k ;
-						point.rgb = (uint32_t)4294902015;//fushia
+						if (object_id == 1){ //ROA ID
+						point.rgb = (uint32_t)4294902015;//fushia						
+						}
+
+						else if (object_id == 2){ //BODYP ID
+						point.rgb = (uint32_t)4278190335;//blue						
+						}
+
+						else {				//unknow object
+						point.rgb = (uint32_t)2701131775;//whilte
+						}
 						// point.rgb = ROA_cloud[j].rgba;
 						j++;
 						// }
@@ -261,6 +286,7 @@ int main(void) {
 						point.rgb = 0;
 
 					}
+
 
 
 					point_cloud_ptr->points.push_back (point);
@@ -461,6 +487,18 @@ void confirmGetEND() {
 		perror("sendto");
 		exit(1);
 	}
+}
+
+int getID(char* bufin){
+	std::string string_vector(sizeof(BUFLEN), 0);
+	string_vector = std::string(bufin);
+	std::vector<std::string> v;
+	split(string_vector, ',', v);
+	// printf("%c\n", bufin[7]);
+	int ID1 = std::stof(v[1]);
+	// printf("---ID1:%d \n", ID1);
+	return ID1;
+
 }
 
 /*--------CREATE CLOUD:-------*/
