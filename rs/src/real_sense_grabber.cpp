@@ -350,7 +350,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
       /*--------GET IMAGE FROM REALSENSE CAMERA BUFFER :--------*/
       if (temporal_filtering_type_ != RealSense_None)
       {
-        PXCImage::ImageData data;
+        PXCImage::ImageData   data;
         sample.depth->AcquireAccess (PXCImage::ACCESS_READ, &data);
         std::vector<unsigned short> data_copy (SIZE);
         memcpy (data_copy.data (), data.planes[0], SIZE * sizeof (unsigned short));
@@ -396,11 +396,13 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
             cloud_row[j].rgba = (uint32_t)2701131775;//white
             if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
               /*Call get_color_ranges here!#*/
+            // while(1){ get_color_ranges(0,0,0);}
               uint32_t ROAColor = (uint32_t)4279303952;//Green
               uint32_t BODYPColor = (uint32_t)4278190335;//blue
               uint32_t rangeColor = (uint32_t)4294902015;//fushia
 
               /*--------FILTER TO UPDATE ROA:--------*/
+              // if (filter_BODYP(color)) {
               if (filter_ROA(color)) {
                 cloud_row[j].rgba = OriginalColor;
                 copyCloud( ROA_individualCloud, cloud_row, index, j, indexROA);
@@ -408,12 +410,12 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
               }
 
               /*--------FILTER TO UPDATE BODYP:--------*/
-              // else if (filter_BODYP(color)) {
-              //   cloud_row[j].rgba = BODYPColor;
-              //   copyCloud( BODYP_individualCloud, cloud_row, index, j, indexBODYP);
+              else if (filter_BODYP(color)) {
+                cloud_row[j].rgba = BODYPColor;
+                copyCloud( BODYP_individualCloud, cloud_row, index, j, indexBODYP);
               //   // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
-              //   indexBODYP++;
-              // }
+                indexBODYP++;
+              }
               else {/**/cloud_row[j].rgba = rangeColor;}
 
               /*Call get_color_ranges here!#*/
@@ -435,23 +437,53 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
       /*--------START SEND over TCP:--------*/
 
       /*--------TIMER FOR TCP TRANSMISION: (TODO: implement this on the THREAD class)--------*/
-      if (now_ms() - timerSendPCD > 3000) {
+      if (now_ms() - timerSendPCD > 7000) {
         std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
         timerSendPCD = now_ms();
 
         /*--------SEND ROA UPDATED CLOUD:--------*/
-        send_start_pkt(server_TCP_ROA, 1);
+        do {
+          // send_start_pkt(server_TCP_ROA, 7);
+          send_start_pkt(server_TCP_ROA, 1);
+        } while (server_TCP_ROA->get_start_confirmation());
+
         for (int k = 0; k <= indexROA; k++) {
-          send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
+          // do {
+            send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
+          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+
         }
-        send_end_pkt(server_TCP_ROA, 1);
+
+        do {
+          send_end_pkt(server_TCP_ROA, 1);
+        } while (server_TCP_ROA->get_end_confirmation());
+        printf("Total Points sent: %d\n", indexROA );
         indexROA = 0;
 
         /*--------SEND BODYP UPDATED CLOUD:--------*/
         // send_start_pkt(server_TCP_ROA,2);
         // send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k, indexBODYP);//ID 2 == BODYP
         // send_end_pkt(server_TCP_ROA,2);
-      }
+
+        do {
+          // send_start_pkt(server_TCP_ROA, 7);
+          send_start_pkt(server_TCP_ROA, 2);
+        } while (server_TCP_ROA->get_start_confirmation());
+
+        for (int k = 0; k <= indexBODYP; k++) {
+          // do {
+            send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
+          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+
+        }
+
+        do {
+          send_end_pkt(server_TCP_ROA, 2);
+        } while (server_TCP_ROA->get_end_confirmation());
+        printf("Total Points sent: %d\n", indexBODYP );
+        indexBODYP = 0;
+        
+      }//end timer to send
       break;
     }
     case PXC_STATUS_DEVICE_LOST:
@@ -481,8 +513,10 @@ void pcl::RealSenseGrabber::send_cloud_pkt(serverROA* server_TCP_ROA, struct ser
 
 bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
   /*RGB Parameters to filter ROA*/
-  int maxRR = 100, maxGG = 163, maxBB = 175;
-  int minRR = 0, minGG = 63 , minBB = 132;
+  int maxRR = 80, maxGG = 255, maxBB = 255; //blue dark
+  int minRR = 30, minGG = 130 , minBB = 50; //blue dark 
+  // int maxRR = 100, maxGG = 163, maxBB = 175; //small blue original
+  // int minRR = 0, minGG = 63 , minBB = 132;   //small blue original
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
@@ -494,8 +528,11 @@ bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
 }
 
 bool pcl::RealSenseGrabber::filter_BODYP(uint32_t color) {
-  int maxRR = 100, maxGG = 163, maxBB = 175;
-  int minRR = 0, minGG = 63 , minBB = 132;
+  
+  int maxRR = 255, maxGG = 163, maxBB = 255; //skin light
+  int minRR = 100, minGG = 63, minBB = 0; //skin light
+  // int maxRR = 100, maxGG = 163, maxBB = 175;
+  // int minRR = 0, minGG = 63 , minBB = 132;
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
