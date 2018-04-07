@@ -379,41 +379,75 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
         /*--------FILTER BY COLORS IN DISTANCE/DEPTH AND SENDING PACKETS TCP :--------*/
         resetCloud(ROA_individualCloud);
         resetCloud(BODYP_individualCloud);
-        for (int i = 0; i < HEIGHT; i++)
-        {
-          PXCPoint3DF32* vertices_row = &vertices[i * WIDTH];
+
+
+        /*--------DECLARATION OF VARIABLES BEFORE LOOP--------*/
+        PXCPoint3DF32* vertices_row;
+        pcl::PointXYZRGBA* cloud_row;
+        uint32_t* color_row = 0;
+
+        /*--------COPY MEMORY POINTERS LOOP--------*/
+        for (int i = 0; i < HEIGHT; i++) {
+          vertices_row = &vertices[i * WIDTH];
           //we are moving the pointer WIDTH points position each loop(i x Points/row)
-          pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
-          uint32_t* color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
+          cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+          color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
+
           for (int j = 0; j < WIDTH; j++) {
-            index = ( i * WIDTH ) + j;
             convertPoint (vertices_row[j], cloud_row[j]);
             memcpy (&cloud_row[j].rgba, &color_row[j], sizeof (uint32_t));
+
+          }
+        }
+
+
+
+        /*--------PROCESSING LOOP--------*/
+        for (int i = 0; i < HEIGHT; i++) {
+
+          for (int j = 0; j < WIDTH; j++) {
+            index = ( i * WIDTH ) + j;
+
+
+            // while(1){
+            ///*this one xxxx*/get_color_ranges_by_frame(xyzrgba_cloud, &minColorValue, &maxColorValue);
+            // }
 
             /*--------SET COLORS IN FRAME BY DISTANCE LAYERS:--------*/
             uint32_t color = cloud_row[j].rgba;
             uint32_t OriginalColor = color;
             cloud_row[j].rgba = (uint32_t)2701131775;//white
-            if (cloud_row[j].z < 0.7/* && !std::isnan(NAN)*/) {
+            if (cloud_row[j].z < distFilter /*0.7m*/ /* && !std::isnan(NAN)*/) {
               /*Call get_color_ranges here!#*/
-            // while(1){ get_color_ranges(0,0,0);}
+              //Also comment listener(); on serverROA.cpp to have this working
+              // get_color_ranges_by_frame(&xyzrgba_cloud->points[0],&minColorValue,&maxColorValue);
+              //get_color_ranges_by_frame(xyzrgba_cloud, &minColorValue, &maxColorValue);
+
+              // get_color_ranges(OriginalColor,&minColorValue,&maxColorValue);
+
+
+              /*Call get_color_ranges here!#*/
               uint32_t ROAColor = (uint32_t)4279303952;//Green
-              uint32_t BODYPColor = (uint32_t)4278190335;//blue
-              uint32_t rangeColor = (uint32_t)4294902015;//fushia
+              uint32_t BODYPColor = (uint32_t)4278190335;//fushia
+              uint32_t rangeColor = (uint32_t)4294902015;//Blue
 
               /*--------FILTER TO UPDATE ROA:--------*/
               // if (filter_BODYP(color)) {
+
+              /*HERE!!!!****>    -COLOOOORS!!!*/
               if (filter_ROA(color)) {
                 cloud_row[j].rgba = OriginalColor;
+                // cloud_row[j].rgba = ROAColor;
                 copyCloud( ROA_individualCloud, cloud_row, index, j, indexROA);
                 indexROA++;
               }
 
               /*--------FILTER TO UPDATE BODYP:--------*/
               else if (filter_BODYP(color)) {
-                cloud_row[j].rgba = BODYPColor;
+                cloud_row[j].rgba = OriginalColor;
+                // cloud_row[j].rgba = BODYPColor;
                 copyCloud( BODYP_individualCloud, cloud_row, index, j, indexBODYP);
-              //   // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
+                //   // send_cloud_point_pkt(index, j, server_TCP_ROA, BODYP_individualCloud, 2 );//ID 2 == BODYP
                 indexBODYP++;
               }
               else {/**/cloud_row[j].rgba = rangeColor;}
@@ -426,6 +460,9 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
         }//end Double nested for Array
         /*--------CLOSE THE FRAME TRANSMISION :--------*/
         /*Print get_color_ranges here!#*/
+
+        /*this one xxxx*/get_color_ranges_by_frame(xyzrgba_cloud, &minColorValue, &maxColorValue);
+
         mapped->ReleaseAccess (&data);
         mapped->Release ();
       }
@@ -449,7 +486,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
         for (int k = 0; k <= indexROA; k++) {
           // do {
-            send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
+          send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
           // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
 
         }
@@ -459,20 +496,15 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
         } while (server_TCP_ROA->get_end_confirmation());
         printf("Total Points sent: %d\n", indexROA );
         indexROA = 0;
-
+        /*--------SEND ROA UPDATED CLOUD:---END----*/
         /*--------SEND BODYP UPDATED CLOUD:--------*/
-        // send_start_pkt(server_TCP_ROA,2);
-        // send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k, indexBODYP);//ID 2 == BODYP
-        // send_end_pkt(server_TCP_ROA,2);
-
         do {
-          // send_start_pkt(server_TCP_ROA, 7);
           send_start_pkt(server_TCP_ROA, 2);
         } while (server_TCP_ROA->get_start_confirmation());
 
         for (int k = 0; k <= indexBODYP; k++) {
           // do {
-            send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
+          send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
           // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
 
         }
@@ -482,7 +514,8 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
         } while (server_TCP_ROA->get_end_confirmation());
         printf("Total Points sent: %d\n", indexBODYP );
         indexBODYP = 0;
-        
+
+        /*SEND BODYP END*/
       }//end timer to send
       break;
     }
@@ -513,10 +546,11 @@ void pcl::RealSenseGrabber::send_cloud_pkt(serverROA* server_TCP_ROA, struct ser
 
 bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
   /*RGB Parameters to filter ROA*/
-  int maxRR = 80, maxGG = 255, maxBB = 255; //blue dark
-  int minRR = 30, minGG = 130 , minBB = 50; //blue dark 
-  // int maxRR = 100, maxGG = 163, maxBB = 175; //small blue original
-  // int minRR = 0, minGG = 63 , minBB = 132;   //small blue original
+  // int maxRR = 80, maxGG = 255, maxBB = 255; //blue dark
+  // int minRR = 30, minGG = 130 , minBB = 50; //blue dark
+  int maxRR = 100, maxGG = 163, maxBB = 175; //small blue original
+  int minRR = 0, minGG = 63 , minBB = 132;   //small blue original
+
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
@@ -528,9 +562,10 @@ bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
 }
 
 bool pcl::RealSenseGrabber::filter_BODYP(uint32_t color) {
-  
-  int maxRR = 255, maxGG = 163, maxBB = 255; //skin light
-  int minRR = 100, minGG = 63, minBB = 0; //skin light
+  int maxRR = 20, maxGG = 20, maxBB = 255; //blue eraser
+  int minRR = 00, minGG = 191, minBB = 190; //blue eraser
+  // int maxRR = 255, maxGG = 163, maxBB = 255; //skin light
+  // int minRR = 100, minGG = 63, minBB = 0; //skin light
   // int maxRR = 100, maxGG = 163, maxBB = 175;
   // int minRR = 0, minGG = 63 , minBB = 132;
   int colorRR = ((color >> 16) & 0x0000FF);
@@ -562,6 +597,102 @@ bool pcl::RealSenseGrabber::get_color_ranges( uint32_t color, uint32_t *minColor
     return 1;
   }
 }
+
+/*bool pcl::RealSenseGrabber::get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut) {
+
+
+  printf("TEST%u\n", minColorValueOut);
+  return 1;
+} */
+
+bool pcl::RealSenseGrabber::get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut) {
+
+  printf("\n\n\n\n\n\n\n\n\n\n---START S/TART START New frame for get_color_ranges_by_frame\n");
+  uint32_t minColorValue = (uint32_t)0xFFFFFFFF;
+  uint32_t maxColorValue = (uint32_t)0;
+  // uint32_t ref_minColorValue = (uint32_t)0xFFFFFFFF;
+  // uint32_t ref_maxColorValue = (uint32_t)0;
+  for (int i = 0; i < HEIGHT; ++i) {
+
+    // printf("\ni: %d\n", i);
+    for (int j = 0; j < WIDTH; ++j) {
+
+      // printf(" %d", j);
+      // &cloud->header.stamp = timestamp;
+
+      //delete this funccion get_color_ranges(evaluate_color,&ref_minColorValue,&ref_maxColorValue);
+      // get_color_ranges_by_frame(&xyzrgba_cloud,&minColorValue,&maxColorValue);
+      // pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points
+      // pcl::PointXYZRGBA* cloud_row = &xyzrgba_cloud->points[i * WIDTH];
+
+      // pcl::PointXYZRGBA* cloud_row = &cloud;
+
+
+
+      uint32_t color = 0;
+      // uint32_t color =    &cloud->points[i * WIDTH];
+      // uint32_t color =    &cloud[j]->points.rgba;
+      // uint32_t color =    &cloud[j]->rgba;
+      int k =  (i * (WIDTH) ) + j;
+      // int k =  (i* (WIDTH+1) ) + j -1;
+
+      color =    cloud->points[k].rgba;
+      float depthPix =  cloud->points[k].z;
+      if (depthPix < 0.5 && color != 4294902015 && color != 0) {
+      // if (depthPix < 0.5 && color != 4278190621 && color != 0) {
+        // printf("Pixel:%d  Color: %u Z:%f\n", k, color, depthPix);
+
+        if (color > 0 && (color < minColorValue)) minColorValue = color;
+        if (color > maxColorValue) maxColorValue = color;
+      }
+
+    }
+  }
+
+
+  if ((minColorValue == (uint32_t)0xFFFFFFFF) && (maxColorValue == 0)) {
+    // return 0;
+    printf("Error getting freame colors Max and Min: empty frame\n");
+  } // error: empty frame
+  else {
+    uint32_t RR, GG, BB = 0;
+    if (minColorValue != (uint32_t)0xFFFFFFFF) {
+      // printf("minColorValue: %u RR:%u GG:%u BB:%u \n", minColorValue, ((minColorValue >> 16) & 0x0000FF), ((minColorValue >> 8) & 0x0000FF), ((minColorValue) & 0x0000FF)  );
+      *minColorValueOut = minColorValue;
+      get_rgb(minColorValue, &RR, &GG, &BB);
+      printf("MinColorValueOut get_rgb color: %u RR:%u GG:%u BB:%u \n", minColorValue, RR, GG, BB);
+    }
+    if (maxColorValue != 0) {
+      // printf("maxColorValue: %u RR:%u GG:%u BB:%u \n", maxColorValue, ((maxColorValue >> 16) & 0x0000FF), ((maxColorValue >> 8) & 0x0000FF), ((maxColorValue) & 0x0000FF)  );
+      *maxColorValueOut = maxColorValue;
+      get_rgb(maxColorValue, &RR, &GG, &BB);
+      printf("MaxColorValueOut get_rgb color: %u RR:%u GG:%u BB:%u \n", maxColorValue, RR, GG, BB);
+    }
+    printf("Use this website to color confirmation https://www.w3schools.com/colors/colors_converter.asp \n");
+    // uint32_t testColor; =  4278190080;
+    // get_rgb(testColor, &RR, &GG, &BB);
+    // printf("TEST CUSTON COLOR get_rgb color: %u RR:%u GG:%u BB:%u \n", testColor, RR, GG, BB);
+
+
+    //return 1;
+  }
+
+  // printf("\n\n\n\n\n\n\n\n\n\n---END END END New frame for get_color_ranges_by_frame\n");
+  return 1;
+}
+/**/
+
+bool pcl::RealSenseGrabber::get_rgb(uint32_t color, uint32_t* RR, uint32_t* GG, uint32_t* BB) {
+
+
+  // uint32_t RR2 = ((*color >> 16) & 0x0000FF);
+  *RR = ((color >> 16) & 0x0000FF);
+  *GG = ((color >> 8) & 0x0000FF);
+  *BB = ((color) & 0x0000FF);
+  // printf("color: %u RR:%u GG:%u BB:%u \n", color, *RR, *GG, *BB);
+  return 1;
+}
+
 
 float pcl::RealSenseGrabber::computeModeScore (const Mode & mode) {
   const float FPS_WEIGHT = 100000;
