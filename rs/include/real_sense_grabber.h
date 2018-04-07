@@ -187,6 +187,7 @@ private:
   const int WIDTH = 640;
   const int HEIGHT = 480;
   const uint32_t SIZE = 307200; //640x480 = 307,200
+  const float distFilter = 0.7;
   struct serverROA::individualCloud* ROA_individualCloud = new struct serverROA::individualCloud[307200];
   struct serverROA::individualCloud* BODYP_individualCloud = new struct serverROA::individualCloud[307200];
     
@@ -202,7 +203,9 @@ private:
 
   /*prints max and min values for color in RR GG BB format  */
   bool get_color_ranges( uint32_t color, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
-
+  bool get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
+  // bool get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
+  bool get_rgb(uint32_t color, uint32_t* RR, uint32_t* GG, uint32_t* BB);
   void createDepthBuffer ();
 
   void selectMode ();
