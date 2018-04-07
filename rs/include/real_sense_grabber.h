@@ -206,6 +206,7 @@ private:
   bool get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
   // bool get_color_ranges_by_frame( pcl::PointCloud<pcl::PointXYZRGBA>::Ptr* cloud, uint32_t *minColorValueOut, uint32_t* maxColorValueOut);
   bool get_rgb(uint32_t color, uint32_t* RR, uint32_t* GG, uint32_t* BB);
+  void print_rgb(uint32_t color);
   void createDepthBuffer ();
 
   void selectMode ();
