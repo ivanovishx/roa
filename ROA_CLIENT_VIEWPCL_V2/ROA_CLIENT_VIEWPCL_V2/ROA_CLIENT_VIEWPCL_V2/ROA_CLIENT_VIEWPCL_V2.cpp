@@ -643,7 +643,10 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl:
 
 
 
-
+// https://stackoverflow.com/questions/9003239/stream-of-cloud-point-visualization-using-pcl
+// this https://github.com/mpp/LCD/blob/e57b601376e559e6e3d98a905a77eefc488a13b5/MOSAIC/pclvisualizerthread.cpp
+// https://github.com/keshavchintamani/triniBot/blob/master/pclstuff/src/pclstuff.cpp
+// https://github.com/robotology/grasp/blob/0db531799370f55dea08347a015c4b4f99a60b8a/object-reconstruction/src/visThread.cpp
 void visualizer_thread() {
 	// prepare visualizer named "viewer"
 	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> cloud_color_handler(cloud, 230, 20, 0); //red
