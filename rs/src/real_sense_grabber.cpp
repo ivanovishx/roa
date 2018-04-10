@@ -404,7 +404,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
         uint32_t ROAColor = (uint32_t)4278190335;// FULL BLUE
         uint32_t BODYPColor = (uint32_t)4294902015;//FULL Fushia
         uint32_t rangeColor = (uint32_t)4279303952;//Green
-        uint32_t whiteColor = (uint32_t)2701131775;//white
+        uint32_t whiteColor = (uint32_t)2701131775;//white //4294967295
         // print_rgb(2701131775);
 
         /*--------PROCESSING LOOP--------*/
@@ -439,12 +439,14 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
               }
               else {
                 cloud_row[j].rgba = rangeColor;
+                // cloud_row[j].rgba = OriginalColor;
               }
             }//END 0.7m detection
           }
         }//end Double nested for Array
         /*--------GET COLOR RANGE FOR CALIBRATION :--------*/
-        //Also comment listener(); on serverROA.cpp to have color_range working
+        //-Comment listener(); on serverROA.cpp to have color_range working
+        //-And change the originalColor push_backck on the foor loop
         ///*xxxxx*/get_color_ranges_by_frame(xyzrgba_cloud, &minColorValue, &maxColorValue);
         /*--------CLOSE THE FRAME TRANSMISION :--------*/
         mapped->ReleaseAccess (&data);
@@ -547,15 +549,17 @@ bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
   // int minRR = 30, minGG = 130 , minBB = 50; //blue dark
   // int maxRR = 100, maxGG = 163, maxBB = 175; //small blue original
   // int minRR = 0, minGG = 63 , minBB = 132;   //small blue original
-  int maxRR = 158, maxGG = 231, maxBB = 255; //marker blue
-  int minRR = 0, minGG = 28 , minBB = 80;   //marker blue
+  // int maxRR = 158, maxGG = 231, maxBB = 255; //marker blue
+  // int minRR = 0, minGG = 28 , minBB = 80;   //marker blue
+  int maxRR = 5, maxGG = 112, maxBB = 222; //marker blue V2
+  int minRR = 0, minGG = 42 , minBB = 102;   //marker blue V2
 
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
-  if ( (minRR < colorRR  &&  colorRR < maxRR) &&
-       (minGG < colorGG  &&  colorGG < maxGG) &&
-       (minBB < colorBB  &&  colorBB < maxBB) )
+  if ( (minRR <= colorRR  &&  colorRR <= maxRR) &&
+       (minGG <= colorGG  &&  colorGG <= maxGG) &&
+       (minBB <= colorBB  &&  colorBB <= maxBB) )
   {     return 1;}
   else {return 0;}
 }
@@ -567,14 +571,16 @@ bool pcl::RealSenseGrabber::filter_BODYP(uint32_t color) {
   // int minRR = 100, minGG = 63, minBB = 0; //skin light
   // int maxRR = 100, maxGG = 163, maxBB = 175;
   // int minRR = 0, minGG = 63 , minBB = 132;
-  int maxRR = 236, maxGG = 130, maxBB = 209; //pink egg
-  int minRR = 206, minGG = 108, minBB = 182; //pink egg
+  // int maxRR = 236, maxGG = 130, maxBB = 209; //pink egg
+  // int minRR = 206, minGG = 108, minBB = 182; //pink egg
+  int maxRR = 238, maxGG = 197, maxBB = 255; //pink egg V2
+  int minRR = 85, minGG = 42, minBB = 116; //pink egg V2
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
-  if ( (minRR < colorRR  &&  colorRR < maxRR) &&
-       (minGG < colorGG  &&  colorGG < maxGG) &&
-       (minBB < colorBB  &&  colorBB < maxBB) )
+  if ( (minRR <= colorRR  &&  colorRR <= maxRR) &&
+       (minGG <= colorGG  &&  colorGG <= maxGG) &&
+       (minBB <= colorBB  &&  colorBB <= maxBB) )
   {return 1;}
   else {return 0;}
 }
@@ -611,7 +617,8 @@ bool pcl::RealSenseGrabber::get_color_ranges_by_frame( pcl::PointCloud<pcl::Poin
       int k =  (i * (WIDTH) ) + j;
       uint32_t color = cloud->points[k].rgba;
       float depthPix =  cloud->points[k].z;
-      if (depthPix < 0.3 && color != 4294902015 && color != 0) {
+      if (depthPix < distFilter && color != 4294902015 && color != 0) {
+        // if (depthPix < 0.3 && color != 4294902015 && color != 0) {
         // if (depthPix < 0.5 && color != 4278190621 && color != 0) {
         // printf("Pixel:%d  Color: %u Z:%f\n", k, color, depthPix);
         if (color > 0 && (color < minColorValue)) minColorValue = color;
