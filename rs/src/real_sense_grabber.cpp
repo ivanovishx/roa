@@ -20,7 +20,7 @@ using namespace std;
 ///////////////////////////////////////
 
 #include <boost/lexical_cast.hpp>
-
+#include <boost/thread/thread.hpp>
 #include <pxcimage.h>
 #include <pxccapture.h>
 #include <pxcprojection.h>
@@ -188,6 +188,80 @@ pcl::RealSenseGrabber::isRunning () const
   return (is_running_);
 }
 
+void pcl::RealSenseGrabber::test_thread() {
+  static uint32_t timerThread = now_ms();
+  static uint32_t timerSendPCD = now_ms();
+  uint32_t i = 0;
+  while (1) {
+    if (((int)now_ms() - (int)timerThread) > 1000) {
+      i++;
+      printf("\n----------i:%u", i);
+      // printf("::%u:-:%u::%u\n",now_ms(), timerThread,(now_ms() - timerThread) );
+      timerThread = now_ms();
+    }
+
+    if ((int)now_ms() - (int)timerSendPCD > 7000) {
+      std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+      timerSendPCD = now_ms();
+
+      /*--------SEND ROA UPDATED CLOUD:--------*/
+      if (indexROA != 0) {
+        printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexROA);
+        do {
+          // send_start_pkt(server_TCP_ROA, 7);
+          send_start_pkt(server_TCP_ROA, 1);
+        } while (server_TCP_ROA->get_start_confirmation());
+
+        for (int k = 0; k <= indexROA; k++) {
+          // do {
+          send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
+          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+
+        }
+
+
+        do {
+          send_end_pkt(server_TCP_ROA, 1);
+        } while (server_TCP_ROA->get_end_confirmation());
+        printf("Total Points sent ROA: %d\n", indexROA );
+        indexROA = 0;
+      }
+      else {
+        printf("Error Sending ROA: 0 points detected\n");
+      }
+      /*--------SEND ROA UPDATED CLOUD:---END----*/
+      /*--------SEND BODYP UPDATED CLOUD:--------*/
+      if (indexBODYP != 0) {
+        printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexBODYP);
+        do {
+          send_start_pkt(server_TCP_ROA, 2);
+        } while (server_TCP_ROA->get_start_confirmation());
+
+        for (int k = 0; k <= indexBODYP; k++) {
+          // do {
+          send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
+          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+
+        }
+
+        do {
+          send_end_pkt(server_TCP_ROA, 2);
+        } while (server_TCP_ROA->get_end_confirmation());
+        printf("Total Points sent BODYPColor: %d\n", indexBODYP );
+        indexBODYP = 0;
+
+      }
+      else {
+        printf("Error Sending BODYP: 0 points detected\n");
+      }
+      /*SEND BODYP END*/
+    }//END 7000ms TIMER SEND
+
+
+  }
+
+}
+
 float
 pcl::RealSenseGrabber::getFramesPerSecond () const
 {
@@ -272,7 +346,7 @@ pcl::RealSenseGrabber::getAvailableModes (bool only_depth) const
 }
 
 void
-pcl::RealSenseGrabber::setMode (const Mode& mode, bool strict)
+pcl::RealSenseGrabber::setMode (const Mode & mode, bool strict)
 {
   if (mode == mode_requested_ && strict == strict_)
     return;
@@ -287,11 +361,11 @@ pcl::RealSenseGrabber::setMode (const Mode& mode, bool strict)
 
 
 
-void pcl::RealSenseGrabber:: resetCloud( struct serverROA::individualCloud* subCloud) {
+void pcl::RealSenseGrabber:: resetCloud( struct serverROA::individualCloud * subCloud) {
   memset (&subCloud, 0, sizeof (subCloud));//reset frame
 }
 
-void pcl::RealSenseGrabber:: copyCloud( serverROA::individualCloud* subCloud, pcl::PointXYZRGBA* cloud_row, uint32_t index1, uint32_t index2, uint32_t indexIF ) {
+void pcl::RealSenseGrabber:: copyCloud( serverROA::individualCloud * subCloud, pcl::PointXYZRGBA * cloud_row, uint32_t index1, uint32_t index2, uint32_t indexIF ) {
   subCloud[indexIF].index = index1;
   subCloud[indexIF].x = (float)cloud_row[index2].x;
   subCloud[indexIF].y = (float)cloud_row[index2].y;
@@ -306,7 +380,8 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
   uint32_t index;
 
   /*--------SERVER DECLARATION OBJs:--------*/
-  serverROA* server_TCP_ROA = new serverROA();
+  server_TCP_ROA = new serverROA();
+  // serverROA* server_TCP_ROA = new serverROA();
 
   /*--------REALSENSE DECLARATION OBJs:--------*/
   PXCProjection* projection = device_->getPXCDevice ().CreateProjection ();
@@ -318,8 +393,13 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
   uint32_t minColorValue = (uint32_t)0xFFFFFFFF;
   uint32_t maxColorValue = (uint32_t)0;
   /*--------INDEX TO SEND CLOUDS :--------*/
-  uint32_t indexROA = (uint32_t)0;
-  uint32_t indexBODYP = (uint32_t)0;
+  indexROA = (uint32_t)0;
+  indexBODYP = (uint32_t)0;
+
+  /*--------THREAD_TEST--------*/
+  // boost::thread workerThread(&RealSenseGrabber::test_thread);
+  boost::thread workerThread(&RealSenseGrabber::test_thread, this);
+  // thread_ = boost::thread (&RealSenseGrabber::run, this);
 
   /*--------SERVER :--------*/
   while (is_running_)
@@ -409,7 +489,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
         /*--------PROCESSING LOOP--------*/
         for (int i = 0; i < HEIGHT; i++) {
-           /**/vertices_row = &vertices[i * WIDTH];
+          /**/vertices_row = &vertices[i * WIDTH];
           /**/cloud_row = &xyzrgba_cloud->points[i * WIDTH];
           /**/color_row = &d[i * data.pitches[0] / sizeof (uint32_t)];
 
@@ -420,7 +500,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
             /*--------SET COLORS IN FRAME BY DISTANCE LAYERS:--------*/
             uint32_t color = cloud_row[j].rgba;
             uint32_t OriginalColor = color;
-            cloud_row[j].rgba = whiteColor;
+            cloud_row[j].rgba = whiteColor; 
             if (cloud_row[j].z < distFilter /*0.7m*/ /* && !std::isnan(NAN)*/) {
               /*--------FILTER TO UPDATE ROA:--------*/
               if (filter_ROA(color)) {
@@ -460,62 +540,62 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
       /*--------START SEND over TCP:--------*/
 
       /*--------TIMER FOR TCP TRANSMISION: (TODO: implement this on the THREAD class)--------*/
-      if (now_ms() - timerSendPCD > 7000) {
-        std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
-        timerSendPCD = now_ms();
+      // if (now_ms() - timerSendPCD > 7000) {
+      //   std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+      //   timerSendPCD = now_ms();
 
-        /*--------SEND ROA UPDATED CLOUD:--------*/
-        if (indexROA != 0) {
+      //   /*--------SEND ROA UPDATED CLOUD:--------*/
+      //   if (indexROA != 0) {
+      //     printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexROA);
+      //     do {
+      //       // send_start_pkt(server_TCP_ROA, 7);
+      //       send_start_pkt(server_TCP_ROA, 1);
+      //     } while (server_TCP_ROA->get_start_confirmation());
 
-          do {
-            // send_start_pkt(server_TCP_ROA, 7);
-            send_start_pkt(server_TCP_ROA, 1);
-          } while (server_TCP_ROA->get_start_confirmation());
+      //     for (int k = 0; k <= indexROA; k++) {
+      //       // do {
+      //       send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
+      //       // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
 
-          for (int k = 0; k <= indexROA; k++) {
-            // do {
-            send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
-            // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
-
-          }
+      //     }
 
 
-          do {
-            send_end_pkt(server_TCP_ROA, 1);
-          } while (server_TCP_ROA->get_end_confirmation());
-          printf("Total Points sent ROA: %d\n", indexROA );
-          indexROA = 0;
-        }
-        else {
-          printf("Error Sending ROA: 0 points detected\n");
-        }
-        /*--------SEND ROA UPDATED CLOUD:---END----*/
-        /*--------SEND BODYP UPDATED CLOUD:--------*/
-        if (indexBODYP != 0) {
+      //     do {
+      //       send_end_pkt(server_TCP_ROA, 1);
+      //     } while (server_TCP_ROA->get_end_confirmation());
+      //     printf("Total Points sent ROA: %d\n", indexROA );
+      //     indexROA = 0;
+      //   }
+      //   else {
+      //     printf("Error Sending ROA: 0 points detected\n");
+      //   }
+      //   /*--------SEND ROA UPDATED CLOUD:---END----*/
+      //   /*--------SEND BODYP UPDATED CLOUD:--------*/
+      //   if (indexBODYP != 0) {
+      //     printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexBODYP);
+      //     do {
+      //       send_start_pkt(server_TCP_ROA, 2);
+      //     } while (server_TCP_ROA->get_start_confirmation());
 
-          do {
-            send_start_pkt(server_TCP_ROA, 2);
-          } while (server_TCP_ROA->get_start_confirmation());
+      //     for (int k = 0; k <= indexBODYP; k++) {
+      //       // do {
+      //       send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
+      //       // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
 
-          for (int k = 0; k <= indexBODYP; k++) {
-            // do {
-            send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
-            // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+      //     }
 
-          }
+      //     do {
+      //       send_end_pkt(server_TCP_ROA, 2);
+      //     } while (server_TCP_ROA->get_end_confirmation());
+      //     printf("Total Points sent BODYPColor: %d\n", indexBODYP );
+      //     indexBODYP = 0;
 
-          do {
-            send_end_pkt(server_TCP_ROA, 2);
-          } while (server_TCP_ROA->get_end_confirmation());
-          printf("Total Points sent BODYPColor: %d\n", indexBODYP );
-          indexBODYP = 0;
-
-        }
-        else {
-          printf("Error Sending BODYP: 0 points detected\n");
-        }
-        /*SEND BODYP END*/
-      }//end timer to send
+      //   }
+      //   else {
+      //     printf("Error Sending BODYP: 0 points detected\n");
+      //   }
+      //   /*SEND BODYP END*/
+      // }//END 7000ms TIMER SEND
       break;
     }
     case PXC_STATUS_DEVICE_LOST:
@@ -531,15 +611,15 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
 
 
-void pcl::RealSenseGrabber::send_start_pkt(serverROA* server_TCP_ROA, int ID) {
+void pcl::RealSenseGrabber::send_start_pkt(serverROA * server_TCP_ROA, int ID) {
   server_TCP_ROA->send_start_pkt(ID);
 
 }
-void pcl::RealSenseGrabber::send_end_pkt(serverROA* server_TCP_ROA, int ID) {
+void pcl::RealSenseGrabber::send_end_pkt(serverROA * server_TCP_ROA, int ID) {
   server_TCP_ROA->send_end_pkt(ID);
 }
 
-void pcl::RealSenseGrabber::send_cloud_pkt(serverROA* server_TCP_ROA, struct serverROA::individualCloud* SendCloud, uint32_t index) {
+void pcl::RealSenseGrabber::send_cloud_pkt(serverROA * server_TCP_ROA, struct serverROA::individualCloud * SendCloud, uint32_t index) {
   server_TCP_ROA->sendIndividualPoint(SendCloud, index);
 }
 
