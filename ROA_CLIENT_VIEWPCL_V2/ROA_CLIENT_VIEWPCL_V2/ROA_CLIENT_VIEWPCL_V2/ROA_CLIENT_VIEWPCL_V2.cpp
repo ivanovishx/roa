@@ -208,18 +208,18 @@ int main(void) {
 				//if (()||(bufin[1] == 'S' && bufin[2] == 'T' && bufin[3] == 'A')) {
 				numPointsFrame = 0;
 				printf("#1-----START!!!\n");
-				
-				if (object_id = 2){
-				point_cloud_ptr->points.clear();					
+
+				if (object_id = 2) {
+					point_cloud_ptr->points.clear();
 				}
 
 				//clearCloud(ROA_cloud, &point_cloud_ptr);
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
 				object_id = getID(bufin);
-				/*HERE xxxxx*/ 
+				/*HERE xxxxx*/
 				confirmGetSTART();
-				
+
 
 
 			}
@@ -242,37 +242,33 @@ int main(void) {
 ////////////////
 				/*
 				if (object_id = 1){
-				point_cloud_ptr->points.clear();					
+				point_cloud_ptr->points.clear();
 				}
 				/**/
 				pcl::PointXYZRGB point;
-				// int k = 0;
-				// while (1) {
+
 				int j = 0;
 
 				for (int i = 0; i < 307200; i++ ) {
 
 					if (i == ROA_cloud[j].index) {
-						// float sumRow = receivedCloud->index[i], receivedCloud->x[i], receivedCloud->y[i], receivedCloud->z[i], receivedCloud->rgba[i]
-						// if (sumRow != 0) {
+						point.x = ROA_cloud[j].x ;
+						point.y = ROA_cloud[j].y ;
+						point.z = ROA_cloud[j].z ;
 
-						point.x = ROA_cloud[j].x  ;
-						point.y = ROA_cloud[j].y  ;
-						point.z = ROA_cloud[j].z  ;
-
-						// point.x = ROA_cloud[j].x + k ;
-						// point.y = ROA_cloud[j].y + k ;
-						// point.z = ROA_cloud[j].z + k ;
-						if (object_id == 1){ //ROA ID
-						point.rgb = (uint32_t)4294902015;//fushia						
+						if (object_id == 1) { //ROA ID
+							point.rgb = (uint32_t)16777215;//white ok
 						}
-
-						else if (object_id == 2){ //BODYP ID
-						point.rgb = (uint32_t)4278190335;//blue						
+							
+						else if (object_id == 2) { //BODYP ID
+							
+							point.rgb = (uint32_t)1113872; //green ok
+							
 						}
 
 						else {				//unknow object
-						point.rgb = (uint32_t)2701131775;//whilte
+							point.rgb = (uint32_t)16727100;//red ok
+							
 						}
 						// point.rgb = ROA_cloud[j].rgba;
 						j++;
@@ -294,10 +290,10 @@ int main(void) {
 				}
 
 
-
 ////////////////
 				//call visualizer:
 
+				printf("TEST point 1\n");
 
 
 				if (numPointsFrame > 500 && callViewer1time == 0) {
@@ -346,18 +342,9 @@ int main(void) {
 
 
 				viewer->removeAllPointClouds(0);
-				// viewer->removePointCloud("cloud", 1);
 
-
-				// viewer->reset (new pcl::visualization::PCLVisualizer ("viewer", false));
-				// point_cloud_ptr.reset (new PointCloud);
-				point_cloud_ptr = reset_point_cloud_ptr;
-
-				                  // k = k + 0.4;
-				                  // k++;
-				// point_cloud_ptr->reset();
 				numPointsFrame = 0;
-				// }//while(1 end)
+
 			}//END msg
 			else {
 				struct individualPoint cloud_spliter2;
@@ -489,7 +476,7 @@ void confirmGetEND() {
 	}
 }
 
-int getID(char* bufin){
+int getID(char* bufin) {
 	std::string string_vector(sizeof(BUFLEN), 0);
 	string_vector = std::string(bufin);
 	std::vector<std::string> v;
