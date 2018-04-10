@@ -116,7 +116,7 @@ int resetIndexEnd = 0;
 char buf[BUFLEN];	/* message buffer */
 int recvlen;		/* # bytes in acknowledgement message */
 char *server = "127.0.0.1";	/* change this to use a different server */
-
+boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 /*------FUNCTIONS DECLARATION------*/
 void split(std::string& s, char c, std::vector<std::string>& v);
 void set_point_packet(individualPoint* _individualPoint, individualPoint cloud_spliter, uint32_t point_index);
@@ -139,13 +139,19 @@ void fillArrayCloud(individualPoint cloud_spliter, individualPoint* array_points
 void pushPointsToCloud(individualPoint* cloud_client,	pcl::PointCloud<pcl::PointXYZRGB>::Ptr* point_cloud_ptr);
 boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud);
 boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+/*------Thread function and variables------*/
+bool update;
+boost::mutex updateModelMutex;
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+void visualizer_thread();
 
 using namespace std;
 
 int main(void) {
 
 	/*------CREATE CLOUD OBJS------*/
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+	// boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+
 	// struct individualPoint* ROA_individualPoint = new struct individualPoint[307200];
 	//pcl::PointCloud<pcl::PointXYZ>::Ptr basic_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -199,9 +205,15 @@ int main(void) {
 	int siezeMsg = 0;
 
 	/*------LOOP------*/
-
+	boost::thread workerThread(visualizer_thread);//set the visualizer_thread function running the thread
 
 	while (1) {
+
+		/*thread*/
+		boost::mutex::scoped_lock updateLock(updateModelMutex);
+		update = true;
+		/*thread*/
+
 		bufin = readSocket();
 		if (bufin[0] == '$') {
 			if (bufin[1] == 'S' && bufin[2] == 'T' && bufin[3] == 'A') {
@@ -259,16 +271,16 @@ int main(void) {
 						if (object_id == 1) { //ROA ID
 							point.rgb = (uint32_t)16777215;//white ok
 						}
-							
+
 						else if (object_id == 2) { //BODYP ID
-							
+
 							point.rgb = (uint32_t)1113872; //green ok
-							
+
 						}
 
 						else {				//unknow object
 							point.rgb = (uint32_t)16727100;//red ok
-							
+
 						}
 						// point.rgb = ROA_cloud[j].rgba;
 						j++;
@@ -293,6 +305,9 @@ int main(void) {
 ////////////////
 				//call visualizer:
 
+				/*threat test...*/
+				updateLock.unlock();
+				/*...threat test*/
 				printf("TEST point 1\n");
 
 
@@ -328,6 +343,7 @@ int main(void) {
 						//// last_cloud_ = point_cloud_ptr;
 						//point_cloud_ptr.reset ();
 					}
+
 
 					viewer->addPointCloud (point_cloud_ptr, "cloud");
 					viewer->updatePointCloud (point_cloud_ptr, "cloud");
@@ -386,6 +402,7 @@ int main(void) {
 		}
 	}
 
+	workerThread.join();
 	// writeSocket();
 	WSACleanup(); //call this for destructor
 	// close(fd);
@@ -601,6 +618,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis(pcl::PointCloud<p
 	return (viewer);
 }
 
+/*This is the one working for now::*/
 boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
 {
 	// --------------------------------------------
@@ -621,4 +639,25 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis(pcl::PointCloud<pcl:
 	// viewer->registerPointPickingCallback (&RealSenseViewer::pointPickingCallback, *this);
 
 	return (viewer);
+}
+
+
+
+
+void visualizer_thread() {
+	// prepare visualizer named "viewer"
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGB> cloud_color_handler(cloud, 230, 20, 0); //red
+	while (!viewer->wasStopped ()) {
+		viewer->spinOnce (100);
+		// Get lock on the boolean update and check if cloud was updated
+		boost::mutex::scoped_lock updateLock(updateModelMutex);
+		if (update) {
+			if (!viewer->updatePointCloud(cloud, "sample cloud"))
+				// pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
+				// viewer->addPointCloud<pcl::PointXYZRGB>(cloud, rgb, "sample cloud");
+				viewer->addPointCloud(cloud, cloud_color_handler, "sample cloud");
+			update = false;
+		}
+		updateLock.unlock();
+	}
 }
