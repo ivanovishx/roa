@@ -194,70 +194,94 @@ void pcl::RealSenseGrabber::test_thread() {
   uint32_t i = 0;
   while (1) {
     if (((int)now_ms() - (int)timerThread) > 1000) {
-      i++;
-      printf("\n----------i:%u", i);
-      // printf("::%u:-:%u::%u\n",now_ms(), timerThread,(now_ms() - timerThread) );
       timerThread = now_ms();
-    }
+      i++;
+      printf("\n----------i:%u\n", i);
+      // printf("::%u:-:%u::%u\n",now_ms(), timerThread,(now_ms() - timerThread) );
 
-    if ((int)now_ms() - (int)timerSendPCD > 7000) {
-      std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
-      timerSendPCD = now_ms();
+      // if ((int)now_ms() - (int)timerSendPCD > 7000) {
+      // std::cout << "::Difference last cicle ms:" << (now_ms() - timerSendPCD) << std::endl;
+      // timerSendPCD = now_ms();
 
       /*--------SEND ROA UPDATED CLOUD:--------*/
-      if (indexROA != 0) {
-        printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexROA);
+      if (indexROA > 500) {
+        printf("---\n----STARTING TO SEND ROA WITH %d points/index TM: %u\n",  indexROA, now_ms());
         do {
-          // send_start_pkt(server_TCP_ROA, 7);
-          send_start_pkt(server_TCP_ROA, 1);
+          if (((int)now_ms() - (int)timerSendPCD) > 100) {
+            timerSendPCD = now_ms();
+            // send_start_pkt(server_TCP_ROA, 7);
+            send_start_pkt(server_TCP_ROA, 1);
+          }
         } while (server_TCP_ROA->get_start_confirmation());
 
         for (int k = 0; k <= indexROA; k++) {
-          // do {
-          send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
-          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+          do {
+            printf(".k:%d\n",k);
+            send_cloud_pkt(server_TCP_ROA, ROA_individualCloud, k);//ID 1 == ROA
 
+          } 
+          while (k < 4500 && server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+          // while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
         }
 
-
+        printf("\n...........POINT SENDING END . ROA\n");
         do {
-          send_end_pkt(server_TCP_ROA, 1);
+          if (((int)now_ms() - (int)timerSendPCD) > 100) {
+            timerSendPCD = now_ms();
+            send_end_pkt(server_TCP_ROA, 1);
+          }
+
         } while (server_TCP_ROA->get_end_confirmation());
-        printf("Total Points sent ROA: %d\n", indexROA );
+        printf("Total Points sent ROA: %d TM: %u\n", indexROA, now_ms() );
         indexROA = 0;
       }
       else {
         printf("Error Sending ROA: 0 points detected\n");
+        uint32_t timmer_scan = now_ms();
+        timerSendPCD = now_ms();
+
+        // while (now_ms() - timerSendPCD < 5000) {
+        //   printf("Waitiing to scan again time:%u\n", now_ms() - timerSendPCD );
+        // }
+
+
+
       }
       /*--------SEND ROA UPDATED CLOUD:---END----*/
       /*--------SEND BODYP UPDATED CLOUD:--------*/
-      if (indexBODYP != 0) {
-        printf("---\n----STARTING TO SEND ROA WITH %d points/index\n",  indexBODYP);
+      if (indexBODYP > 500) { //higger than 50 ppoints veryfication
+        printf("---\n----STARTING TO SEND BODYP WITH %d points/index TM: %u\n",  indexBODYP, now_ms());
+
         do {
+          printf("timestamp: %u  ", now_ms() );
           send_start_pkt(server_TCP_ROA, 2);
         } while (server_TCP_ROA->get_start_confirmation());
 
         for (int k = 0; k <= indexBODYP; k++) {
-          // do {
-          send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
-          // } while (server_TCP_ROA->get_point_confirmation((int)ROA_individualCloud[k].index));
+          do {
+            printf(".k:%d\n",k);
+            send_cloud_pkt(server_TCP_ROA, BODYP_individualCloud, k);//ID 1 == ROA
+          } 
+          while (k < 4500 && server_TCP_ROA->get_point_confirmation((int)BODYP_individualCloud[k].index));
+         // while ( server_TCP_ROA->get_point_confirmation((int)BODYP_individualCloud[k].index));
 
         }
-
+        printf("\n...........POINT SENDING END . BODYP\n");
         do {
+          printf("timestamp: %u  ", now_ms() );
           send_end_pkt(server_TCP_ROA, 2);
         } while (server_TCP_ROA->get_end_confirmation());
-        printf("Total Points sent BODYPColor: %d\n", indexBODYP );
+        printf("Total Points sent BODYPColor: %d TM: %u\n",  indexBODYP, now_ms());
         indexBODYP = 0;
 
       }
       else {
-        printf("Error Sending BODYP: 0 points detected\n");
+        printf("Error Sending BODYP: 0 or less of 500 points detected\n");
       }
       /*SEND BODYP END*/
-    }//END 7000ms TIMER SEND
+      // }//END 7000ms TIMER SEND
 
-
+    }
   }
 
 }
@@ -482,8 +506,8 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
 
 
         uint32_t ROAColor = (uint32_t)4278190335;// FULL BLUE
-        uint32_t BODYPColor = (uint32_t)4294902015;//FULL Fushia
-        uint32_t rangeColor = (uint32_t)4279303952;//Green
+        uint32_t BODYPColor = (uint32_t)4279303952;//Green
+        uint32_t rangeColor = (uint32_t)4294902015;//FULL Fushia
         uint32_t whiteColor = (uint32_t)2701131775;//white //4294967295
         // print_rgb(2701131775);
 
@@ -500,7 +524,7 @@ void pcl::RealSenseGrabber::run ()//rrrrrrrrr
             /*--------SET COLORS IN FRAME BY DISTANCE LAYERS:--------*/
             uint32_t color = cloud_row[j].rgba;
             uint32_t OriginalColor = color;
-            cloud_row[j].rgba = whiteColor; 
+            cloud_row[j].rgba = whiteColor;
             if (cloud_row[j].z < distFilter /*0.7m*/ /* && !std::isnan(NAN)*/) {
               /*--------FILTER TO UPDATE ROA:--------*/
               if (filter_ROA(color)) {
@@ -631,8 +655,10 @@ bool pcl::RealSenseGrabber::filter_ROA(uint32_t color) {
   // int minRR = 0, minGG = 63 , minBB = 132;   //small blue original
   // int maxRR = 158, maxGG = 231, maxBB = 255; //marker blue
   // int minRR = 0, minGG = 28 , minBB = 80;   //marker blue
-  int maxRR = 5, maxGG = 112, maxBB = 222; //marker blue V2
-  int minRR = 0, minGG = 42 , minBB = 102;   //marker blue V2
+  // int maxRR = 5, maxGG = 112, maxBB = 222; //marker blue V2
+  // int minRR = 0, minGG = 42 , minBB = 102;   //marker blue V2
+  int maxRR = 20, maxGG = 125, maxBB = 250; //marker blue V3
+  int minRR = 0, minGG = 30, minBB = 75;   //marker blue V3
 
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
@@ -653,8 +679,12 @@ bool pcl::RealSenseGrabber::filter_BODYP(uint32_t color) {
   // int minRR = 0, minGG = 63 , minBB = 132;
   // int maxRR = 236, maxGG = 130, maxBB = 209; //pink egg
   // int minRR = 206, minGG = 108, minBB = 182; //pink egg
-  int maxRR = 238, maxGG = 197, maxBB = 255; //pink egg V2
-  int minRR = 85, minGG = 42, minBB = 116; //pink egg V2
+  // int maxRR = 238, maxGG = 197, maxBB = 255; //pink egg V2
+  // int minRR = 85, minGG = 42, minBB = 116; //pink egg V2
+  // int maxRR = 20, maxGG = 250, maxBB = 90; //Green Marker
+  // int minRR = 00, minGG = 100, minBB = 50; //Green Marker
+  int maxRR = 20, maxGG = 250, maxBB = 70; //Green Marker V2
+  int minRR = 00, minGG = 50, minBB = 20; //Green Marker V2
   int colorRR = ((color >> 16) & 0x0000FF);
   int colorGG = ((color >> 8) & 0x0000FF);
   int colorBB = ((color) & 0x0000FF);
