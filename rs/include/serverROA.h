@@ -99,7 +99,8 @@ public:
 
 	serverROA();
 	~serverROA();
-	long now_ms();
+	uint64_t now_ms();
+	uint64_t timerCondition;
 	bool sendTCPpack(char* buffer);
 	bool send_start_pkt(int ID);
 	bool send_end_pkt(int ID);
