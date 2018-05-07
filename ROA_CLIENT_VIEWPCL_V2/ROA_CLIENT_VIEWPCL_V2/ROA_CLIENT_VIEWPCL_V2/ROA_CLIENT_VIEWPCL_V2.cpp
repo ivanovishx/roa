@@ -267,17 +267,20 @@ int main(void) {
 
 				numPointsFrame = 0;
 				printf("\nRECEIVED: #1-----START!!!");
-
-				// if (object_id = 2) {
-				// 	point_cloud_ptr->points.clear();
-				// }
-
-				//clearCloud(ROA_cloud, &point_cloud_ptr);
 				actualIndexPointFrame = 0;
 				lastIndexPointFrame = 0;
 				object_id = getID(bufin);
 				printf(" ID:%d TM: %u\n",  object_id, now_ms());
 				confirmGetSTART();
+
+				// if (object_id = 2) {
+				// 	update = true;
+				// 	Mutex1.try_lock();
+				// 	point_cloud_ptr->points.clear();
+				// 	Mutex1.unlock();
+				// 	update = false;
+				// 	//clearCloud(ROA_cloud, &point_cloud_ptr);
+				// }
 			}
 			// else if ((resetIndexEnd) || (bufin[1] == 'E' && bufin[2] == 'N' && bufin[3] == 'D')) {
 			else if ( (bufin[1] == 'E' && bufin[2] == 'N' && bufin[3] == 'D')) {
@@ -307,7 +310,9 @@ int main(void) {
 
 				int j = 0;
 				timerInprogress = 0;
-				update = true;
+
+				// Mutex1.lock();
+				// update = true;
 
 				for (int i = 0; i < 307200; i++ ) {
 					// if (timerInprogress < now_ms()) {printf("TEST Point #5 END in progress...\n"); timerInprogress = now_ms() + 10;}
@@ -321,7 +326,10 @@ int main(void) {
 						}
 
 						else if (object_id == 2) { //BODYP ID
-							point.rgb = (uint32_t)1113872; //green ok
+							point.rgb = (uint32_t)16777020;
+
+							// point.rgb = ‭(uint32_t)3997500‬;
+							// point.rgb = (uint32_t)1113872; //green ok
 						}
 
 						else {				//unknow object
@@ -340,28 +348,33 @@ int main(void) {
 					//TODO sync this with thread xxxxxxxx
 					// cloud->points.push_back (point);
 					// printf("#6: i:%d j:%d ", i,j);
-					;;;;;;;;;;
+					//;;;;;;;;;;
 					// msleep(1);
+					update = true;
+					Mutex1.lock();
+
 					point_cloud_ptr->points.push_back (point);
 
+					update = false;
+					Mutex1.unlock();
 					// printf("#7\n");
 					// point_cloud_ptr->points.push_back (point);
 					// printf("TEST point 2\n");
 
 				}
-				// printf("TEST point 1\n");
+				printf("TEST point #5\n");
 
 
 ////////////////
 				//call visualizer:
-				// printf("TEST point 1.1\n");
-				update = false;
-				// Mutex1.lock();
+				update = true;
+				Mutex1.lock();
 
 				cloud = point_cloud_ptr;
-
-				// Mutex1.unlock()
+				update = false;
+				Mutex1.unlock();
 				/*threat test...*/
+				printf("TEST point #6\n");
 				// boost::mutex::scoped_lock updateLock(Mutex1);
 				// updateLock.try_lock();
 				// updateLock.unlock();
@@ -381,7 +394,7 @@ int main(void) {
 				////////////////////-------------old ok/////////////
 				/////coming from real_sense_viewer.cpp
 				// if (point_cloud_ptr)
-				// { 
+				// {
 				// boost::mutex::scoped_lock lock (new_cloud_mutex_);
 				// if (!viewer->updatePointCloud (point_cloud_ptr, "cloud"))
 				// {
@@ -429,7 +442,7 @@ int main(void) {
 				// else {
 				// 	printf("^^xx THREAD:main  STATUS:NO  detach first time\n");
 				// }
-				update = true;
+				// update = true;
 				// updateLock.unlock();
 				// updateLock.lock();
 				printf("END msg...\n");
@@ -797,15 +810,18 @@ void visualizer_thread() {//ttttt2
 	// point_cloud_ptr = cloud;
 	while (true) {
 		// populate the point cloud
-		// Mutex1.lock();
 		// viewer->removePointCloud("cloud");
 		// viewer->addPointCloud(cloud, "cloud", 1);
-		if(update == false){			
-		viewer->updatePointCloud (cloud, "sample cloud");
+		if (update == false) {
+			if (Mutex1.try_lock()) {
+				// Mutex1.try_lock();
+				// Mutex1.lock();
+				viewer->updatePointCloud (cloud, "sample cloud");
+				Mutex1.unlock();
+			}
 		}
 		// viewer->addPointCloudNormals<pcl::PointNormal, pcl::PointNormal> (cloud, cloud, 25, 0.15, "normals");
 		viewer->spinOnce (1, true);
-		// Mutex1.unlock();
 	}
 
 	while (true) {
